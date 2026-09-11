@@ -99,7 +99,7 @@
 const SUPABASE_URL="https://niaykltphhpuehovoltz.supabase.co";
 const SUPABASE_KEY="sb_publishable_Md_KzdxxmhYnZFs9CHXEnw_cpnkfATw";
 // ---- Gemini AI (private demo only — key is visible in the page; keep repo private, rotate after) ----
-const GEMINI_KEY="AQ.Ab8RN6IHrsZO7VkIdekDW_7Yjmw4vDqHINhCmr_BVPl6ri0nwA";                       // <-- paste your Gemini API key here
+const GEMINI_KEY="AQ.Ab8RN6K0ULKghlVEJrcYKVP_g2GsGM1NI7tiwtQ5poVIbQLwgQ";                       // <-- paste your Gemini API key here
 const GEMINI_MODEL="gemini-2.5-flash";     // change if this model name isn't available on your key
 const H={apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,"Content-Type":"application/json"};
 async function sbGet(q){const r=await fetch(`${SUPABASE_URL}/rest/v1/${q}`,{headers:H});if(!r.ok)throw new Error(await r.text());return r.json();}
@@ -274,12 +274,20 @@ function aiRow(item,qty,state){
 }
 async function aiExplode(machineName){
   const prompt=`You are a manufacturing BOM assistant for heavy earthmoving / industrial machines. List the main raw materials required to manufacture one "${machineName}". Respond with ONLY a JSON array (no markdown, no prose) of 5 to 7 objects, each: {"description":"<short material description, e.g. Structural steel plate 25mm A572>","subcategory":"<one of STL,BAR,CST,TUB,NFE,RUB>"}.`;
-  const url=`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-  const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":GEMINI_KEY},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
-  if(!r.ok)throw new Error((await r.text()).slice(0,120));
-  const d=await r.json();
-  let t=((d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0].text)||"").replace(/```json/gi,"").replace(/```/g,"").trim();
-  const arr=JSON.parse(t);return Array.isArray(arr)?arr:[];
+  const body=JSON.stringify({contents:[{parts:[{text:prompt}]}]});
+  const models=[GEMINI_MODEL,"gemini-flash-latest","gemini-2.5-flash","gemini-2.0-flash","gemini-1.5-flash"].filter((m,i,a)=>m&&a.indexOf(m)===i);
+  let lastErr="";
+  for(const model of models){
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":GEMINI_KEY},body});
+    if(r.ok){
+      const d=await r.json();
+      let t=((d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0].text)||"").replace(/```json/gi,"").replace(/```/g,"").trim();
+      const arr=JSON.parse(t);return Array.isArray(arr)?arr:[];
+    }
+    lastErr=(await r.text()).slice(0,120);
+    if(r.status!==404&&r.status!==400)break;   // 401/403/429 -> key/quota problem, don't keep trying models
+  }
+  throw new Error(lastErr||"request failed");
 }
 function openMachineOrder(o){
   currentOrder=o;
