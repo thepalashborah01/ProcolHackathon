@@ -21,28 +21,20 @@
   }
   *{box-sizing:border-box}
   html,body{margin:0}
-  body{
-    font-family:"IBM Plex Sans",system-ui,sans-serif;
-    background:var(--paper); color:var(--ink);
-    -webkit-font-smoothing:antialiased; line-height:1.5;
-  }
+  body{font-family:"IBM Plex Sans",system-ui,sans-serif;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
   code,.mono{font-family:"IBM Plex Mono",monospace}
   .wrap{max-width:1120px;margin:0 auto;padding:28px 22px 80px}
 
-  /* header */
   header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
   .brand{display:flex;align-items:baseline;gap:12px}
   .brand h1{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0}
   .brand .sub{color:var(--muted);font-size:13.5px}
-  .status{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);
-    background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 13px}
+  .status{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 13px}
   .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
   .dot.on{background:var(--good)} .dot.err{background:#B23B3B}
 
-  /* layout */
   .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:20px;align-items:start}
   @media (max-width:880px){.grid{grid-template-columns:1fr}}
-
   .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
   .panel .hd{padding:16px 18px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;justify-content:space-between;gap:10px}
   .panel .hd h2{font-size:15px;margin:0;font-weight:600}
@@ -50,28 +42,22 @@
   .panel .bd{padding:16px 18px}
 
   label.f{display:block;font-size:12.5px;color:var(--ink-2);margin:0 0 5px;font-weight:500}
-  input,select{font-family:inherit;font-size:14px;color:var(--ink);background:var(--surface);
-    border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
+  input,select{font-family:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
   input:focus,select:focus{outline:2px solid var(--steel);outline-offset:0;border-color:var(--steel)}
 
   .lines{display:flex;flex-direction:column;gap:10px;margin-top:4px}
   .line{display:grid;grid-template-columns:1fr 68px 92px 30px;gap:8px;align-items:end}
-  .line .rm{border:1px solid var(--line);background:var(--surface-2);color:var(--muted);border-radius:8px;
-    height:38px;cursor:pointer;font-size:16px;line-height:1}
+  .line .rm{border:1px solid var(--line);background:var(--surface-2);color:var(--muted);border-radius:8px;height:38px;cursor:pointer;font-size:16px;line-height:1}
   .line .rm:hover{color:#B23B3B;border-color:#e3b4b4}
-  .addline{margin-top:12px;background:none;border:1px dashed var(--line);color:var(--steel);
-    border-radius:8px;padding:9px;width:100%;cursor:pointer;font-size:13.5px;font-weight:500}
+  .addline{margin-top:12px;background:none;border:1px dashed var(--line);color:var(--steel);border-radius:8px;padding:9px;width:100%;cursor:pointer;font-size:13.5px;font-weight:500}
   .addline:hover{background:var(--steel-050);border-color:var(--steel)}
-
-  .go{margin-top:16px;width:100%;background:var(--steel);color:#fff;border:0;border-radius:9px;
-    padding:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+  .go{margin-top:16px;width:100%;background:var(--steel);color:#fff;border:0;border-radius:9px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
   .go:hover{background:var(--steel-700)} .go:disabled{opacity:.5;cursor:default}
 
-  /* results */
   .empty{color:var(--muted);font-size:14px;padding:26px 4px;text-align:center}
   .res{display:flex;flex-direction:column;gap:12px}
-
-  .rline{border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .rline{border:1px solid var(--line);border-radius:9px;overflow:hidden;cursor:pointer;transition:border-color .12s,background .12s}
+  .rline:hover{border-color:var(--steel);background:var(--surface-2)}
   .rline.newmat{border-style:dashed;border-color:var(--steel)}
   .rline .row{display:flex;align-items:center;gap:12px;padding:11px 13px}
   .rline .q{flex:1;min-width:0}
@@ -83,6 +69,7 @@
   .badge.match{background:var(--good-bg);color:var(--good)}
   .badge.review{background:var(--warn-bg);color:var(--warn)}
   .badge.new{background:var(--steel-050);color:var(--steel)}
+  .badge.active{background:var(--good-bg);color:var(--good)}
 
   .meter{height:6px;background:var(--line-2);border-radius:99px;overflow:hidden;width:96px;flex:none}
   .meter i{display:block;height:100%;border-radius:99px}
@@ -91,13 +78,14 @@
   .rcode .mono{color:var(--ink);font-weight:500}
   .cands{border-top:1px solid var(--line-2);background:var(--surface-2);padding:8px 13px;font-size:12px;color:var(--muted)}
   .cands span{color:var(--ink-2)}
+  .tap{color:var(--steel);font-size:11.5px}
 
-  /* PR cards */
   .prs{margin-top:22px;display:flex;flex-direction:column;gap:14px}
   .prs h2{font-size:15px;margin:0 0 2px;font-weight:600}
   .prs .lead{color:var(--muted);font-size:13px;margin:0 0 6px}
   .pr{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-  .pr .phd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line-2)}
+  .pr .phd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line-2);cursor:pointer}
+  .pr .phd:hover{background:var(--surface-2)}
   .pr .pnum{font-size:14px;font-weight:600}
   .pr .pnum .mono{color:var(--steel)}
   .pr .pmeta{font-size:12.5px;color:var(--muted);margin-top:1px}
@@ -105,15 +93,38 @@
   .pr td,.pr th{text-align:left;padding:9px 16px;border-bottom:1px solid var(--line-2)}
   .pr th{font-size:11.5px;color:var(--muted);font-weight:500}
   .pr tr:last-child td{border-bottom:0}
-  .pr .pfoot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px}
+  .pr .clk{color:var(--steel);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  .pr .pfoot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;flex-wrap:wrap}
   .pr .vend{font-size:12.5px;color:var(--muted)}
-  .approve{background:var(--surface);border:1px solid var(--steel);color:var(--steel);border-radius:8px;
-    padding:9px 16px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}
+  .approve{background:var(--surface);border:1px solid var(--steel);color:var(--steel);border-radius:8px;padding:9px 16px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}
   .approve:hover{background:var(--steel);color:#fff}
+  .approve:disabled{border-color:var(--line);color:var(--muted);cursor:not-allowed;background:var(--surface-2)}
+  .approve:disabled:hover{background:var(--surface-2);color:var(--muted)}
   .pr.approved{border-color:var(--good)}
   .pr.approved .phd{background:var(--good-bg)}
   .approved-tag{display:inline-flex;align-items:center;gap:7px;color:var(--good);font-size:13.5px;font-weight:600}
-  .flag{font-size:11px;color:var(--steel);border:1px solid var(--steel);border-radius:5px;padding:1px 6px;margin-left:8px}
+  .flag{font-size:11px;color:var(--steel);border:1px solid var(--steel);border-radius:5px;padding:1px 6px;margin-left:8px;cursor:pointer}
+  .flag:hover{background:var(--steel);color:#fff}
+  .gatehint{font-size:12px;color:var(--warn)}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(20,23,27,.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .modal{background:var(--surface);border-radius:12px;max-width:540px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal .mhd{padding:16px 20px;border-bottom:1px solid var(--line-2);display:flex;justify-content:space-between;align-items:flex-start;gap:12px;position:sticky;top:0;background:var(--surface)}
+  .modal .mhd h3{margin:0;font-size:16px}
+  .modal .mhd .msub{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .modal .mhd .x{background:none;border:0;font-size:22px;color:var(--muted);cursor:pointer;line-height:1}
+  .modal .mbd{padding:8px 20px 16px}
+  .drow{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px solid var(--line-2);font-size:13.5px;align-items:center}
+  .drow:last-child{border-bottom:0}
+  .drow .k{color:var(--muted);flex:none}
+  .drow .v{color:var(--ink);text-align:right}
+  .drow input,.drow select{max-width:230px}
+  .mfoot{padding:14px 20px;border-top:1px solid var(--line-2);display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;bottom:0;background:var(--surface)}
+  .mprimary{background:var(--steel);color:#fff;border:0;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+  .mprimary:hover{background:var(--steel-700)}
+  .attrs{font-size:12.5px;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line-2);border-radius:8px;padding:10px 12px;margin-top:6px}
+  .attrs .mono{color:var(--ink)}
 
   .foot{margin-top:34px;color:var(--muted);font-size:12px;text-align:center}
   @media (prefers-reduced-motion:no-preference){
@@ -125,15 +136,11 @@
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="brand">
-      <h1>Parts Desk</h1>
-      <span class="sub">Customer order → purchase requisition</span>
-    </div>
+    <div class="brand"><h1>Parts Desk</h1><span class="sub">Customer order → purchase requisition</span></div>
     <div class="status" id="status"><span class="dot" id="dot"></span><span id="statusText">Connecting to your parts database…</span></div>
   </header>
 
   <div class="grid">
-    <!-- ORDER INTAKE -->
     <section class="panel">
       <div class="hd"><h2>New customer order</h2><span class="hint">what the customer asked for</span></div>
       <div class="bd">
@@ -147,31 +154,25 @@
       </div>
     </section>
 
-    <!-- RESOLUTION -->
     <section class="panel">
-      <div class="hd"><h2>What we matched</h2><span class="hint">customer words → your part codes</span></div>
+      <div class="hd"><h2>What we matched</h2><span class="hint">tap any line for details</span></div>
       <div class="bd">
         <div id="res" class="empty">Add an order on the left and press <b>Generate requisition</b>. Each line gets matched to a stocked part — or flagged as a new part to create.</div>
       </div>
     </section>
   </div>
 
-  <!-- PURCHASE REQUISITIONS -->
   <div class="prs" id="prs"></div>
-
-  <p class="foot">Reading live from your parts database. Matches and requisitions are generated here in your browser.</p>
+  <p class="foot">Reading live from your parts database. Matching, requisitions and approvals run here in your browser.</p>
 </div>
+
+<div id="modalRoot"></div>
 
 <script>
 const SUPABASE_URL = "https://niaykltphhpuehovoltz.supabase.co";
 const SUPABASE_KEY = "sb_publishable_Md_KzdxxmhYnZFs9CHXEnw_cpnkfATw";
 
-const INDIAN_STATES = [
-  ["MH","Maharashtra"],["KA","Karnataka"],["TN","Tamil Nadu"],["GJ","Gujarat"],
-  ["DL","Delhi"],["UP","Uttar Pradesh"],["WB","West Bengal"],["RJ","Rajasthan"],["TS","Telangana"]
-];
-
-// example order that tells the whole story: 3 clean matches + 1 unknown part
+const INDIAN_STATES = [["MH","Maharashtra"],["KA","Karnataka"],["TN","Tamil Nadu"],["GJ","Gujarat"],["DL","Delhi"],["UP","Uttar Pradesh"],["WB","West Bengal"],["RJ","Rajasthan"],["TS","Telangana"]];
 const SEED_LINES = [
   {desc:"oil filter for c15", qty:4, state:"MH"},
   {desc:"12 volt battery",    qty:2, state:"MH"},
@@ -179,184 +180,288 @@ const SEED_LINES = [
   {desc:"hand grinder XYZ-900",qty:1, state:"KA"},
 ];
 
-let MATERIALS = [];
+// taxonomy for classifying a brand-new part (category list + keyword guesser)
+const CATS = {
+  RM:"Raw Materials", CHM:"Chemicals", PKG:"Packaging", CON:"Production Consumables",
+  FAS:"Fasteners & Hardware", SPR:"Spares / MRO", ELE:"Electrical", INS:"Instrumentation",
+  TLS:"Tools & Equipment", SAF:"Safety / PPE", ITH:"IT Hardware", OFC:"Office & Facility",
+  FAC:"Facility & Civil", SVC:"Services"
+};
+const CLASSIFY = [
+  [/grinder|drill|power tool|cutter|saw/,"TLS","PWR","power tool"],
+  [/spanner|wrench|hammer|plier|screwdriver/,"TLS","HND","hand tool"],
+  [/glove|helmet|goggle|mask|ppe|safety/,"SAF","GLV","safety"],
+  [/filter/,"SPR","FLT","filter"],
+  [/injector/,"SPR","INJ","injector"],
+  [/turbo/,"SPR","TRB","turbocharger"],
+  [/radiator/,"SPR","RAD","radiator"],
+  [/bearing/,"SPR","BRG","bearing"],
+  [/gasket|seal/,"SPR","SEL","gasket"],
+  [/\bbelt\b/,"SPR","BEL","belt"],
+  [/pump/,"SPR","PMP","pump"],
+  [/starter|motor/,"SPR","MOT","motor"],
+  [/battery/,"ELE","BAT","battery"],
+  [/alternator/,"ELE","ALT","alternator"],
+  [/panel/,"ELE","PNL","panel"],
+  [/cable|wire/,"ELE","CBL","cable"],
+  [/avr|regulator|controller/,"INS","CTL","controller"],
+  [/sensor|sender|gauge/,"INS","SEN","sensor"],
+  [/oil|coolant|lubricant/,"CHM","OIL","oil"],
+  [/grease/,"CON","LUB","grease"],
+  [/bolt/,"FAS","BLT","bolt"],
+  [/nut/,"FAS","NUT","nut"],
+];
+function classify(desc){
+  const d=(desc||"").toLowerCase();
+  for(const [re,cat,sub,fam] of CLASSIFY) if(re.test(d)) return {category:cat,subcategory:sub,family:fam};
+  return {category:"SPR",subcategory:"MSC",family:"unclassified"};
+}
 
-/* ---------- load parts from Supabase ---------- */
+let MATERIALS = [];
+let ST = { resolved:[], prs:[] };
+let prSeq = 4530;
+
+/* ---------- data ---------- */
 async function loadParts(){
   try{
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/material?select=*`,{
-      headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}` }
-    });
-    if(!r.ok) throw new Error(r.status+" "+r.statusText);
-    MATERIALS = await r.json();
-    setStatus("on", `Connected · ${MATERIALS.length} parts loaded`);
-    document.getElementById("go").disabled = false;
-  }catch(e){
-    setStatus("err", "Couldn't reach the database — open this file in Chrome, or host it");
-    console.error(e);
-  }
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/material?select=*`,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}});
+    if(!r.ok) throw new Error(r.status);
+    MATERIALS=await r.json();
+    setStatus("on",`Connected · ${MATERIALS.length} parts loaded`);
+    document.getElementById("go").disabled=false;
+  }catch(e){ setStatus("err","Couldn't reach the database — host this file, then open the link"); }
 }
-function setStatus(kind,text){
-  document.getElementById("dot").className = "dot "+(kind==="on"?"on":kind==="err"?"err":"");
-  document.getElementById("statusText").textContent = text;
-}
+function setStatus(k,t){ document.getElementById("dot").className="dot "+(k==="on"?"on":k==="err"?"err":""); document.getElementById("statusText").textContent=t; }
 
-/* ---------- matching (trigram + token + model awareness) ---------- */
-function norm(s){ return (s||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim().replace(/\s+/g," "); }
-function trigrams(s){
-  const words = norm(s).split(" ").filter(Boolean);
-  const set = new Set();
-  for(const w of words){ const p = "  "+w+" "; for(let i=0;i<p.length-2;i++) set.add(p.slice(i,i+3)); }
-  return set;
-}
-function jaccard(a,b){ let inter=0; for(const x of a) if(b.has(x)) inter++; const uni=a.size+b.size-inter; return uni?inter/uni:0; }
-function tokens(s){ return new Set(norm(s).split(" ").filter(Boolean)); }
-function tokenOverlap(a,b){ let inter=0; for(const x of a) if(b.has(x)) inter++; return a.size?inter/a.size:0; }
-
-function modelsOf(mat){
-  const a = mat.match_attributes||{}; const vals=[];
-  for(const k of ["engine_model","genset_model","alternator_model"]) if(a[k]) vals.push(a[k]);
-  return vals.map(norm).flatMap(v=>v.split(" ")).filter(Boolean);
-}
-function score(query, mat){
-  const q = norm(query);
-  const tri = jaccard(trigrams(q), trigrams(mat.normalized_description||mat.short_description));
-  const tok = tokenOverlap(tokens(q), tokens((mat.normalized_description||"")+" "+(mat.short_description||"")));
-  let s = 0.55*tri + 0.45*tok;
-  const qtok = tokens(q);
-  const models = modelsOf(mat);
-  if(models.length && models.some(m=>qtok.has(m))) s += 0.22;   // model-aware boost
-  return Math.min(1, s);
-}
+/* ---------- matching ---------- */
+function norm(s){return (s||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim().replace(/\s+/g," ");}
+function trigrams(s){const w=norm(s).split(" ").filter(Boolean);const set=new Set();for(const x of w){const p="  "+x+" ";for(let i=0;i<p.length-2;i++)set.add(p.slice(i,i+3));}return set;}
+function jac(a,b){let i=0;for(const x of a)if(b.has(x))i++;const u=a.size+b.size-i;return u?i/u:0;}
+function toks(s){return new Set(norm(s).split(" ").filter(Boolean));}
+function overlap(a,b){let i=0;for(const x of a)if(b.has(x))i++;return a.size?i/a.size:0;}
+function modelsOf(m){const a=m.match_attributes||{};const v=[];for(const k of["engine_model","genset_model","alternator_model"])if(a[k])v.push(a[k]);return v.map(norm).flatMap(x=>x.split(" ")).filter(Boolean);}
+function score(q,m){const tri=jac(trigrams(q),trigrams(m.normalized_description||m.short_description));const tok=overlap(toks(q),toks((m.normalized_description||"")+" "+(m.short_description||"")));let s=0.55*tri+0.45*tok;const qt=toks(q);const mo=modelsOf(m);if(mo.length&&mo.some(x=>qt.has(x)))s+=0.22;return Math.min(1,s);}
 function resolve(query){
-  const ranked = MATERIALS.map(m=>({m, s:score(query,m)})).sort((a,b)=>b.s-a.s);
-  const best = ranked[0] || {s:0};
-  const HIGH=0.42, MED=0.26;
-  let status = best.s>=HIGH ? "match" : best.s>=MED ? "review" : "new";
-  return { status, best:best.m, bestScore:best.s, candidates:ranked.slice(0,3) };
+  const ranked=MATERIALS.map(m=>({m,s:score(query,m)})).sort((a,b)=>b.s-a.s);
+  const best=ranked[0]||{s:0};
+  const HIGH=0.42,MED=0.26;
+  const status=best.s>=HIGH?"match":best.s>=MED?"review":"new";
+  return {status,best:best.m,bestScore:best.s,candidates:ranked.slice(0,3)};
+}
+
+/* ---------- code generation (taxonomy) ---------- */
+function nextSeq(cat,sub){
+  const prefix=`${cat}-${sub}-`;
+  let max=0;
+  for(const m of MATERIALS){ if((m.material_code||"").startsWith(prefix)){ const n=parseInt(m.material_code.slice(prefix.length),10); if(n>max)max=n; } }
+  return String(max+1).padStart(5,"0");
+}
+function makeProvisional(desc){
+  const c=classify(desc);
+  const mat={
+    material_code:`${c.category}-${c.subcategory}-${nextSeq(c.category,c.subcategory)}`,
+    status:"provisional",
+    short_description:desc,
+    normalized_description:norm(desc),
+    category:c.category, subcategory:c.subcategory, material_group:c.family,
+    base_uom:"NOS", hsn_code:"", gst_rate:18, tax_classification:"taxable",
+    match_attributes:{part_family:c.family, source_text:desc},
+    source:"so_auto", _new:true
+  };
+  return mat;
 }
 
 /* ---------- order form ---------- */
-const linesEl = document.getElementById("lines");
-function stateOptions(sel){ return INDIAN_STATES.map(([c,n])=>`<option value="${c}" ${c===sel?"selected":""}>${c} — ${n}</option>`).join(""); }
+const linesEl=document.getElementById("lines");
+function stateOpts(sel){return INDIAN_STATES.map(([c,n])=>`<option value="${c}" ${c===sel?"selected":""}>${c} — ${n}</option>`).join("");}
 function lineRow(l={desc:"",qty:1,state:"MH"}){
-  const div=document.createElement("div"); div.className="line";
-  div.innerHTML=`
-    <div><input class="d" placeholder="e.g. fuel filter for c15" value="${l.desc}"></div>
+  const div=document.createElement("div");div.className="line";
+  div.innerHTML=`<div><input class="d" placeholder="e.g. fuel filter for c15" value="${l.desc}"></div>
     <div><input class="q" type="number" min="1" value="${l.qty}"></div>
-    <div><select class="s">${stateOptions(l.state)}</select></div>
+    <div><select class="s">${stateOpts(l.state)}</select></div>
     <button class="rm" title="Remove line">×</button>`;
   div.querySelector(".rm").onclick=()=>div.remove();
   return div;
 }
 SEED_LINES.forEach(l=>linesEl.appendChild(lineRow(l)));
 document.getElementById("addLine").onclick=()=>linesEl.appendChild(lineRow());
-
 function readOrder(){
   const cust=document.getElementById("cust").value.trim()||"Customer";
-  const lines=[...linesEl.querySelectorAll(".line")].map((row,i)=>({
-    line_no:i+1,
-    desc:row.querySelector(".d").value.trim(),
-    qty:+row.querySelector(".q").value||1,
-    state:row.querySelector(".s").value
-  })).filter(l=>l.desc);
-  return {cust, lines};
+  const lines=[...linesEl.querySelectorAll(".line")].map((row,i)=>({line_no:i+1,desc:row.querySelector(".d").value.trim(),qty:+row.querySelector(".q").value||1,state:row.querySelector(".s").value})).filter(l=>l.desc);
+  return {cust,lines};
 }
 
 /* ---------- generate ---------- */
-let prSeq = 4530;
 document.getElementById("go").onclick=()=>{
-  const order=readOrder();
-  if(!order.lines.length){ return; }
-  const resolved=order.lines.map(l=>({...l, ...resolve(l.desc)}));
-  renderResolution(resolved);
-  renderPRs(order, resolved);
+  const order=readOrder(); if(!order.lines.length) return;
+  const resolved=order.lines.map(l=>{
+    const r=resolve(l.desc);
+    let material;
+    if(r.status==="new"){ material=makeProvisional(l.desc); }
+    else { material=r.best; }
+    return {...l, status:r.status, score:r.bestScore, candidates:r.candidates, material};
+  });
+  // build PRs split by state
+  const states=[...new Set(resolved.map(r=>r.state))];
+  const prs=states.map(st=>({
+    prNo:"PR-2026-"+String(++prSeq).padStart(6,"0"),
+    cust:order.cust, state:st,
+    stName:(INDIAN_STATES.find(s=>s[0]===st)||[st,st])[1],
+    lines:resolved.filter(r=>r.state===st),
+    approved:false
+  }));
+  ST={resolved,prs};
+  renderAll();
   document.getElementById("prs").scrollIntoView({behavior:"smooth",block:"start"});
 };
 
-function meter(s){
-  const pct=Math.round(s*100);
-  const col = s>=0.42 ? "var(--good)" : s>=0.26 ? "var(--amber)" : "var(--steel)";
-  return `<div class="meter"><i style="width:${Math.max(6,pct)}%;background:${col}"></i></div><div class="conf">${pct}%</div>`;
+/* ---------- render ---------- */
+function meter(s){const p=Math.round(s*100);const c=s>=0.42?"var(--good)":s>=0.26?"var(--amber)":"var(--steel)";return `<div class="meter"><i style="width:${Math.max(6,p)}%;background:${c}"></i></div><div class="conf">${p}%</div>`;}
+function lineBadge(r){
+  if(r.status==="new") return r.material.status==="active"?`<span class="badge active">Active</span>`:`<span class="badge new">New part</span>`;
+  return r.status==="match"?`<span class="badge match">Matched</span>`:`<span class="badge review">Check this</span>`;
 }
-function badge(st){
-  return st==="match"?`<span class="badge match">Matched</span>`
-       : st==="review"?`<span class="badge review">Check this</span>`
-       : `<span class="badge new">New part</span>`;
-}
-function renderResolution(rows){
+function renderResolution(){
   const el=document.getElementById("res"); el.className="res"; el.innerHTML="";
-  rows.forEach(r=>{
+  ST.resolved.forEach((r,idx)=>{
     const div=document.createElement("div");
-    div.className="rline"+(r.status==="new"?" newmat":"");
-    const codeLine = r.status==="new"
-      ? `<div class="rcode">No stocked part fits — a new code will be created and sent for approval.</div>`
-      : `<div class="rcode">→ <span class="mono">${r.best.material_code}</span> · ${r.best.short_description}</div>`;
-    const cand = (r.status!=="new" && r.candidates.length>1)
-      ? `<div class="cands">also considered: ${r.candidates.slice(1).map(c=>`<span>${c.m.short_description}</span> (${Math.round(c.s*100)}%)`).join(", ")}</div>`
-      : "";
-    div.innerHTML=`
-      <div class="row">
-        <div class="q">
-          <div class="qtext">${r.desc}</div>
-          <div class="qmeta">qty <span class="mono">${r.qty}</span> · ship to <span class="mono">${r.state}</span></div>
-        </div>
-        ${meter(r.bestScore)}
-        ${badge(r.status)}
-      </div>
-      ${codeLine}${cand}`;
+    div.className="rline"+(r.status==="new"&&r.material.status!=="active"?" newmat":"");
+    const codeLine = (r.status==="new")
+      ? `<div class="rcode">→ <span class="mono">${r.material.material_code}</span> · ${r.material.status==="active"?"created &amp; active":"new code, pending approval"} <span class="tap">· tap to review</span></div>`
+      : `<div class="rcode">→ <span class="mono">${r.material.material_code}</span> · ${r.material.short_description} <span class="tap">· tap for details</span></div>`;
+    const cand=(r.status!=="new"&&r.candidates.length>1)?`<div class="cands">also considered: ${r.candidates.slice(1).map(c=>`<span>${c.m.short_description}</span> (${Math.round(c.s*100)}%)`).join(", ")}</div>`:"";
+    div.innerHTML=`<div class="row"><div class="q"><div class="qtext">${r.desc}</div><div class="qmeta">qty <span class="mono">${r.qty}</span> · ship to <span class="mono">${r.state}</span></div></div>${meter(r.score)}${lineBadge(r)}</div>${codeLine}${cand}`;
+    div.onclick=()=>openMaterial(r);
     el.appendChild(div);
   });
 }
-
-/* ---------- purchase requisitions, split by state ---------- */
-function renderPRs(order, resolved){
+function prHasPending(pr){ return pr.lines.some(l=>l.status==="new"&&l.material.status!=="active"); }
+function renderPRs(){
   const wrap=document.getElementById("prs"); wrap.innerHTML="";
-  const states=[...new Set(resolved.map(r=>r.state))];
+  if(!ST.prs.length) return;
   const head=document.createElement("div");
-  head.innerHTML=`<h2>Draft requisitions</h2><p class="lead">One requisition per delivery state — ${states.length} in this order. Review, then approve.</p>`;
+  head.innerHTML=`<h2>Draft requisitions</h2><p class="lead">One requisition per delivery state — ${ST.prs.length} in this order. A new part must be approved before its requisition can go through.</p>`;
   wrap.appendChild(head);
-
-  states.forEach(st=>{
-    const lines=resolved.filter(r=>r.state===st);
-    const stName=(INDIAN_STATES.find(s=>s[0]===st)||[st,st])[1];
-    const prNo="PR-2026-"+String(++prSeq).padStart(6,"0");
-    const pr=document.createElement("div"); pr.className="pr";
-    pr.innerHTML=`
-      <div class="phd">
-        <div>
-          <div class="pnum">Requisition <span class="mono">${prNo}</span></div>
-          <div class="pmeta">${order.cust} · deliver to ${stName} (${st}) · ${lines.length} line${lines.length>1?"s":""}</div>
-        </div>
-        <div class="act"></div>
+  ST.prs.forEach(pr=>{
+    const pending=prHasPending(pr);
+    const el=document.createElement("div"); el.className="pr"+(pr.approved?" approved":"");
+    el.innerHTML=`
+      <div class="phd" title="View full requisition">
+        <div><div class="pnum">Requisition <span class="mono">${pr.prNo}</span></div>
+        <div class="pmeta">${pr.cust} · deliver to ${pr.stName} (${pr.state}) · ${pr.lines.length} line${pr.lines.length>1?"s":""}</div></div>
+        <div class="act">${pr.approved?'<span class="approved-tag">✓ Approved</span>':''}</div>
       </div>
-      <table>
-        <tr><th>Part</th><th>Code</th><th>Qty</th><th>Status</th></tr>
-        ${lines.map(l=>`
-          <tr>
-            <td>${l.status==="new" ? l.desc : l.best.short_description}</td>
-            <td class="mono">${l.status==="new" ? "new part" : l.best.material_code}</td>
-            <td class="mono">${l.qty}</td>
-            <td>${l.status==="new"
-                  ? '<span class="badge new">provisional</span><span class="flag">needs approval</span>'
-                  : badge(l.status)}</td>
-          </tr>`).join("")}
+      <table><tr><th>Part</th><th>Code</th><th>Qty</th><th>Status</th></tr>
+      ${pr.lines.map((l,i)=>`<tr>
+        <td>${l.status==="new"?l.material.short_description:l.material.short_description}</td>
+        <td class="mono">${l.material.material_code}</td>
+        <td class="mono">${l.qty}</td>
+        <td>${l.status==="new"&&l.material.status!=="active"
+              ? `<span class="badge new">provisional</span><span class="flag" data-i="${i}">approve part</span>`
+              : lineBadge(l)}</td></tr>`).join("")}
       </table>
       <div class="pfoot">
-        <span class="vend">Preferred vendor: none yet — set on approval</span>
-        <button class="approve">Approve requisition</button>
+        <span class="vend">${pending?'<span class="gatehint">Approve the new part before approving this requisition.</span>':'Preferred vendor: none yet — set on approval'}</span>
+        ${pr.approved?'<span class="approved-tag">✓ Approved · sent to purchasing</span>'
+          :`<button class="approve" ${pending?"disabled":""}>Approve requisition</button>`}
       </div>`;
-    const btn=pr.querySelector(".approve");
-    btn.onclick=()=>{
-      pr.classList.add("approved");
-      const hasNew=lines.some(l=>l.status==="new");
-      pr.querySelector(".act").innerHTML=`<span class="approved-tag">✓ Approved</span>`;
-      pr.querySelector(".pfoot").innerHTML=
-        `<span class="vend">${hasNew?"New part codes activated · ":""}Sent onward for purchasing.</span>
-         <span class="approved-tag">✓ Approved</span>`;
-    };
-    wrap.appendChild(pr);
+    el.querySelector(".phd").onclick=()=>openPR(pr);
+    el.querySelectorAll(".flag").forEach(f=>f.onclick=(e)=>{e.stopPropagation();openMaterial(pr.lines[+f.dataset.i]);});
+    const ab=el.querySelector(".approve");
+    if(ab) ab.onclick=()=>{ pr.approved=true; renderAll(); };
+    wrap.appendChild(el);
   });
+}
+function renderAll(){ renderResolution(); renderPRs(); }
+
+/* ---------- modals ---------- */
+const root=document.getElementById("modalRoot");
+function closeModal(){ root.innerHTML=""; }
+function shell(title,sub,bodyHTML,footHTML){
+  root.innerHTML=`<div class="overlay"><div class="modal">
+    <div class="mhd"><div><h3>${title}</h3>${sub?`<div class="msub">${sub}</div>`:""}</div><button class="x" title="Close">×</button></div>
+    <div class="mbd">${bodyHTML}</div>${footHTML?`<div class="mfoot">${footHTML}</div>`:""}</div></div>`;
+  root.querySelector(".overlay").onclick=(e)=>{ if(e.target.classList.contains("overlay")) closeModal(); };
+  root.querySelector(".x").onclick=closeModal;
+}
+function drow(k,v){ return `<div class="drow"><span class="k">${k}</span><span class="v">${v}</span></div>`; }
+
+function openMaterial(r){
+  const m=r.material;
+  const isNew = r.status==="new" && m.status!=="active";
+  if(isNew){
+    // editable approval screen
+    const catOpts=Object.entries(CATS).map(([c,n])=>`<option value="${c}" ${c===m.category?"selected":""}>${c} — ${n}</option>`).join("");
+    const body=`
+      ${drow("Requested as",`<span class="v">${m.match_attributes.source_text}</span>`)}
+      <div class="drow"><span class="k">Description</span><input id="f_desc" value="${m.short_description}"></div>
+      <div class="drow"><span class="k">Category</span><select id="f_cat">${catOpts}</select></div>
+      <div class="drow"><span class="k">Subcategory</span><input id="f_sub" value="${m.subcategory}" maxlength="4" style="max-width:90px;text-transform:uppercase"></div>
+      <div class="drow"><span class="k">Unit</span><select id="f_uom"><option>NOS</option><option>SET</option><option>L</option><option>KG</option></select></div>
+      <div class="drow"><span class="k">HSN code</span><input id="f_hsn" value="${m.hsn_code||""}" placeholder="e.g. 8467" style="max-width:120px"></div>
+      <div class="drow"><span class="k">GST %</span><input id="f_gst" type="number" value="${m.gst_rate}" style="max-width:80px"></div>
+      ${drow("Generated code",`<span class="mono" id="f_code" style="color:var(--steel);font-weight:600">${m.material_code}</span>`)}
+      ${drow("Status",`<span class="badge new">provisional</span>`)}`;
+    const foot=`<span class="vend" style="font-size:12.5px;color:var(--muted)">Approving makes this part active and lets its requisition proceed.</span><button class="mprimary" id="approveMat">Approve part</button>`;
+    shell("Review new part", `From order line · ${m.match_attributes.source_text}`, body, foot);
+    const recode=()=>{ const cat=root.querySelector("#f_cat").value; const sub=(root.querySelector("#f_sub").value||"MSC").toUpperCase(); root.querySelector("#f_code").textContent=`${cat}-${sub}-${nextSeq(cat,sub)}`; };
+    root.querySelector("#f_cat").onchange=recode;
+    root.querySelector("#f_sub").oninput=recode;
+    root.querySelector("#approveMat").onclick=()=>{
+      m.short_description=root.querySelector("#f_desc").value.trim()||m.short_description;
+      m.category=root.querySelector("#f_cat").value;
+      m.subcategory=(root.querySelector("#f_sub").value||"MSC").toUpperCase();
+      m.base_uom=root.querySelector("#f_uom").value;
+      m.hsn_code=root.querySelector("#f_hsn").value.trim();
+      m.gst_rate=+root.querySelector("#f_gst").value||18;
+      m.material_code=root.querySelector("#f_code").textContent;
+      m.normalized_description=norm(m.short_description);
+      m.status="active"; m._new=false;
+      MATERIALS.push(m);              // now searchable for future orders
+      closeModal(); renderAll();
+    };
+  } else {
+    const a=m.match_attributes||{};
+    const attrs=Object.keys(a).length?`<div class="attrs">${Object.entries(a).map(([k,v])=>`${k}: <span class="mono">${v}</span>`).join(" &nbsp;·&nbsp; ")}</div>`:"";
+    const body=`
+      ${drow("Code",`<span class="mono" style="font-weight:600">${m.material_code}</span>`)}
+      ${drow("Description",m.short_description)}
+      ${drow("Category",`${m.category} — ${CATS[m.category]||""}`)}
+      ${drow("Subcategory",m.subcategory)}
+      ${drow("Group",m.material_group||"—")}
+      ${drow("Unit",m.base_uom||"—")}
+      ${drow("HSN / GST",`${m.hsn_code||"—"} · ${m.gst_rate!=null?m.gst_rate+"%":"—"}`)}
+      ${drow("Status",`<span class="badge ${m.status==='active'?'active':'match'}">${m.status||"active"}</span>`)}
+      ${attrs}
+      ${r.status==="review"?`<div class="attrs" style="border-color:var(--warn-bg);background:var(--warn-bg);color:var(--warn)">Matched at ${Math.round(r.score*100)}% — flagged for a human check before it goes on the requisition.</div>`:""}`;
+    shell(m.short_description, `Part code ${m.material_code}`, body, "");
+  }
+}
+
+function openPR(pr){
+  const pending=prHasPending(pr);
+  const body=`
+    ${drow("Requisition",`<span class="mono" style="font-weight:600">${pr.prNo}</span>`)}
+    ${drow("Customer",pr.cust)}
+    ${drow("Deliver to",`${pr.stName} (${pr.state})`)}
+    ${drow("Status",pr.approved?`<span class="approved-tag">✓ Approved</span>`:pending?`<span class="badge new">blocked — part pending</span>`:`<span class="badge review">draft</span>`)}
+    <div style="height:8px"></div>
+    <table style="width:100%;border-collapse:collapse;font-size:13.5px">
+      <tr style="color:var(--muted);font-size:12px"><th style="text-align:left;padding:6px 0">Part</th><th style="text-align:left">Code</th><th style="text-align:left">Qty</th><th style="text-align:left">Status</th></tr>
+      ${pr.lines.map(l=>`<tr style="border-top:1px solid var(--line-2)">
+        <td style="padding:8px 0">${l.material.short_description}</td>
+        <td class="mono">${l.material.material_code}</td>
+        <td class="mono">${l.qty}</td>
+        <td>${l.status==="new"&&l.material.status!=="active"?'<span class="badge new">provisional</span>':l.status==="new"?'<span class="badge active">active</span>':(l.status==="match"?'<span class="badge match">matched</span>':'<span class="badge review">check</span>')}</td></tr>`).join("")}
+    </table>
+    ${drow("Preferred vendor",pr.approved?"set on approval":"none yet")}`;
+  const foot = pr.approved
+    ? `<span class="vend" style="font-size:12.5px;color:var(--good)">Sent onward to purchasing.</span><button class="mprimary" onclick="this.closest('.overlay').remove()">Close</button>`
+    : `<span class="vend" style="font-size:12.5px;color:var(--muted)">${pending?"Approve the new part first.":"Ready to approve."}</span>`+
+      `<button class="mprimary" id="prApprove" ${pending?"disabled style='opacity:.5;cursor:not-allowed'":""}>Approve requisition</button>`;
+  shell("Requisition detail", pr.prNo, body, foot);
+  const b=root.querySelector("#prApprove");
+  if(b&&!pending) b.onclick=()=>{ pr.approved=true; closeModal(); renderAll(); };
 }
 
 loadParts();
