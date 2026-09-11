@@ -1,139 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Parts Desk — Order to Requisition</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Parts Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{--paper:#E9ECEF;--surface:#FFFFFF;--surface-2:#F4F6F8;--ink:#14171B;--ink-2:#3D454E;--muted:#79828C;--line:#D6DBE0;--line-2:#E6EAEE;--steel:#274B6D;--steel-700:#1C3A55;--steel-050:#EAF0F6;--good:#1C7A45;--good-bg:#E7F3EC;--warn:#9A5B00;--warn-bg:#FBEFDD;--amber:#D9A100;--shadow:0 1px 2px rgba(20,23,27,.06),0 8px 24px rgba(20,23,27,.06);--radius:10px;}
   *{box-sizing:border-box} html,body{margin:0}
   body{font-family:"IBM Plex Sans",system-ui,sans-serif;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
   code,.mono{font-family:"IBM Plex Mono",monospace}
-  .wrap{max-width:1120px;margin:0 auto;padding:28px 22px 80px}
-  header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
-  .brand{display:flex;align-items:baseline;gap:12px}
-  .brand h1{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0}
-  .brand .sub{color:var(--muted);font-size:13.5px}
-  .status{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 13px}
-  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
-  .dot.on{background:var(--good)} .dot.err{background:#B23B3B}
-  .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:20px;align-items:start}
-  @media (max-width:880px){.grid{grid-template-columns:1fr}}
+  .wrap{max-width:1120px;margin:0 auto;padding:24px 22px 80px}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+  .brand{display:flex;align-items:baseline;gap:12px} .brand h1{font-size:21px;font-weight:700;letter-spacing:-.01em;margin:0} .brand .sub{color:var(--muted);font-size:13px}
+  .who{display:inline-flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-2)}
+  .who .role{background:var(--steel-050);color:var(--steel);border-radius:999px;padding:4px 11px;font-weight:600;font-size:12px}
+  .lnk{background:none;border:0;color:var(--steel);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  .status{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)} .dot.on{background:var(--good)} .dot.err{background:#B23B3B}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:20px;align-items:start} @media (max-width:880px){.grid{grid-template-columns:1fr}}
   .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-  .panel .hd{padding:16px 18px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;justify-content:space-between;gap:10px}
-  .panel .hd h2{font-size:15px;margin:0;font-weight:600}
-  .panel .hd .hint{color:var(--muted);font-size:12.5px}
+  .panel .hd{padding:15px 18px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .panel .hd h2{font-size:15px;margin:0;font-weight:600} .panel .hd .hint{color:var(--muted);font-size:12.5px}
   .panel .bd{padding:16px 18px}
   label.f{display:block;font-size:12.5px;color:var(--ink-2);margin:0 0 5px;font-weight:500}
   input,select{font-family:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
-  input:focus,select:focus{outline:2px solid var(--steel);outline-offset:0;border-color:var(--steel)}
+  input:focus,select:focus{outline:2px solid var(--steel);border-color:var(--steel)}
   .lines{display:flex;flex-direction:column;gap:10px;margin-top:4px}
   .line{display:grid;grid-template-columns:1fr 68px 92px 30px;gap:8px;align-items:end}
-  .line .rm{border:1px solid var(--line);background:var(--surface-2);color:var(--muted);border-radius:8px;height:38px;cursor:pointer;font-size:16px;line-height:1}
+  .line .rm{border:1px solid var(--line);background:var(--surface-2);color:var(--muted);border-radius:8px;height:38px;cursor:pointer;font-size:16px}
   .line .rm:hover{color:#B23B3B;border-color:#e3b4b4}
   .addline{margin-top:12px;background:none;border:1px dashed var(--line);color:var(--steel);border-radius:8px;padding:9px;width:100%;cursor:pointer;font-size:13.5px;font-weight:500}
   .addline:hover{background:var(--steel-050);border-color:var(--steel)}
   .go{margin-top:16px;width:100%;background:var(--steel);color:#fff;border:0;border-radius:9px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
   .go:hover{background:var(--steel-700)} .go:disabled{opacity:.5;cursor:default}
+  .btn2{background:var(--surface);border:1px solid var(--steel);color:var(--steel);border-radius:8px;padding:9px 15px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}
+  .btn2:hover{background:var(--steel);color:#fff}
   .empty{color:var(--muted);font-size:14px;padding:26px 4px;text-align:center}
   .res{display:flex;flex-direction:column;gap:12px}
-  .rline{border:1px solid var(--line);border-radius:9px;overflow:hidden;cursor:pointer;transition:border-color .12s,background .12s}
-  .rline:hover{border-color:var(--steel);background:var(--surface-2)}
-  .rline.pend{border-style:dashed;border-color:var(--steel)}
-  .rline .row{display:flex;align-items:center;gap:12px;padding:11px 13px}
-  .rline .q{flex:1;min-width:0}
-  .rline .qtext{font-size:14px}
-  .rline .qmeta{font-size:12px;color:var(--muted);margin-top:1px}
-  .rline .qmeta .mono{color:var(--ink-2)}
+  .rline{border:1px solid var(--line);border-radius:9px;overflow:hidden;cursor:pointer;transition:.12s}
+  .rline:hover{border-color:var(--steel);background:var(--surface-2)} .rline.pend{border-style:dashed;border-color:var(--steel)}
+  .rline .row{display:flex;align-items:center;gap:12px;padding:11px 13px} .rline .q{flex:1;min-width:0}
+  .rline .qtext{font-size:14px} .rline .qmeta{font-size:12px;color:var(--muted);margin-top:1px} .rline .qmeta .mono{color:var(--ink-2)}
   .badge{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
-  .badge.match{background:var(--good-bg);color:var(--good)}
-  .badge.review{background:var(--warn-bg);color:var(--warn)}
-  .badge.new{background:var(--steel-050);color:var(--steel)}
-  .badge.active{background:var(--good-bg);color:var(--good)}
-  .meter{height:6px;background:var(--line-2);border-radius:99px;overflow:hidden;width:96px;flex:none}
-  .meter i{display:block;height:100%;border-radius:99px}
+  .badge.match,.badge.active{background:var(--good-bg);color:var(--good)} .badge.review{background:var(--warn-bg);color:var(--warn)} .badge.new{background:var(--steel-050);color:var(--steel)}
+  .meter{height:6px;background:var(--line-2);border-radius:99px;overflow:hidden;width:90px;flex:none} .meter i{display:block;height:100%}
   .conf{font-size:12px;color:var(--ink-2);width:34px;text-align:right;flex:none}
-  .rcode{font-size:12.5px;color:var(--ink-2);padding:0 13px 11px 13px}
-  .rcode .mono{color:var(--ink);font-weight:500}
-  .cands{border-top:1px solid var(--line-2);background:var(--surface-2);padding:8px 13px;font-size:12px;color:var(--muted)}
-  .cands span{color:var(--ink-2)}
-  .tap{color:var(--steel);font-size:11.5px}
+  .rcode{font-size:12.5px;color:var(--ink-2);padding:0 13px 11px} .rcode .mono{color:var(--ink);font-weight:500} .tap{color:var(--steel);font-size:11.5px}
+  .cands{border-top:1px solid var(--line-2);background:var(--surface-2);padding:8px 13px;font-size:12px;color:var(--muted)} .cands span{color:var(--ink-2)}
   .prs{margin-top:22px;display:flex;flex-direction:column;gap:14px}
-  .prs h2{font-size:15px;margin:0 0 2px;font-weight:600}
-  .prs .lead{color:var(--muted);font-size:13px;margin:0 0 6px}
+  .prs h2{font-size:15px;margin:0 0 2px;font-weight:600} .prs .lead{color:var(--muted);font-size:13px;margin:0 0 6px}
   .pr{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-  .pr .phd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line-2);cursor:pointer}
-  .pr .phd:hover{background:var(--surface-2)}
-  .pr .pnum{font-size:14px;font-weight:600}
-  .pr .pnum .mono{color:var(--steel)}
-  .pr .pmeta{font-size:12.5px;color:var(--muted);margin-top:1px}
-  .pr table{width:100%;border-collapse:collapse;font-size:13px}
-  .pr td,.pr th{text-align:left;padding:9px 16px;border-bottom:1px solid var(--line-2)}
-  .pr th{font-size:11.5px;color:var(--muted);font-weight:500}
-  .pr tr:last-child td{border-bottom:0}
-  .pr .pfoot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;flex-wrap:wrap}
-  .pr .vend{font-size:12.5px;color:var(--muted)}
+  .pr .phd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line-2);cursor:pointer} .pr .phd:hover{background:var(--surface-2)}
+  .pr .pnum{font-size:14px;font-weight:600} .pr .pnum .mono{color:var(--steel)} .pr .pmeta{font-size:12.5px;color:var(--muted);margin-top:1px}
+  .pr table{width:100%;border-collapse:collapse;font-size:13px} .pr td,.pr th{text-align:left;padding:9px 16px;border-bottom:1px solid var(--line-2)}
+  .pr th{font-size:11.5px;color:var(--muted);font-weight:500} .pr tr:last-child td{border-bottom:0}
+  .pr .pfoot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;flex-wrap:wrap} .pr .vend{font-size:12.5px;color:var(--muted)}
   .approve{background:var(--surface);border:1px solid var(--steel);color:var(--steel);border-radius:8px;padding:9px 16px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}
-  .approve:hover{background:var(--steel);color:#fff}
-  .approve:disabled{border-color:var(--line);color:var(--muted);cursor:not-allowed;background:var(--surface-2)}
-  .approve:disabled:hover{background:var(--surface-2);color:var(--muted)}
+  .approve:hover{background:var(--steel);color:#fff} .approve:disabled{border-color:var(--line);color:var(--muted);cursor:not-allowed;background:var(--surface-2)}
   .pr.approved{border-color:var(--good)} .pr.approved .phd{background:var(--good-bg)}
   .approved-tag{display:inline-flex;align-items:center;gap:7px;color:var(--good);font-size:13.5px;font-weight:600}
-  .flag{font-size:11px;color:var(--steel);border:1px solid var(--steel);border-radius:5px;padding:1px 6px;margin-left:8px;cursor:pointer}
-  .flag:hover{background:var(--steel);color:#fff}
+  .flag{font-size:11px;color:var(--steel);border:1px solid var(--steel);border-radius:5px;padding:1px 6px;margin-left:8px;cursor:pointer} .flag:hover{background:var(--steel);color:#fff}
   .gatehint{font-size:12px;color:var(--warn)}
+  .ordercard{border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surface)}
+  .ordercard:hover{border-color:var(--steel)} .ordercard .oc-meta{font-size:12.5px;color:var(--muted);margin-top:2px}
+  /* login */
+  .login{max-width:460px;margin:8vh auto 0;text-align:center}
+  .login .logo{font-size:26px;font-weight:700;letter-spacing:-.02em} .login .tl{color:var(--muted);margin:4px 0 26px}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:14px} @media(max-width:520px){.cards{grid-template-columns:1fr}}
+  .lcard{border:1px solid var(--line);border-radius:12px;padding:20px 18px;background:var(--surface);cursor:pointer;text-align:left;box-shadow:var(--shadow);transition:.12s}
+  .lcard:hover{border-color:var(--steel);transform:translateY(-2px)} .lcard h3{margin:0 0 4px;font-size:16px} .lcard p{margin:0;font-size:12.5px;color:var(--muted)}
+  .lform{margin-top:18px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:var(--shadow)}
+  .hintline{font-size:12px;color:var(--muted);margin-top:8px}
+  /* modal */
   .overlay{position:fixed;inset:0;background:rgba(20,23,27,.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
-  .modal{background:var(--surface);border-radius:12px;max-width:540px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-  .modal .mhd{padding:16px 20px;border-bottom:1px solid var(--line-2);display:flex;justify-content:space-between;align-items:flex-start;gap:12px;position:sticky;top:0;background:var(--surface)}
-  .modal .mhd h3{margin:0;font-size:16px}
-  .modal .mhd .msub{color:var(--muted);font-size:12.5px;margin-top:2px}
-  .modal .mhd .x{background:none;border:0;font-size:22px;color:var(--muted);cursor:pointer;line-height:1}
-  .modal .mbd{padding:8px 20px 16px}
-  .drow{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px solid var(--line-2);font-size:13.5px;align-items:center}
-  .drow:last-child{border-bottom:0}
-  .drow .k{color:var(--muted);flex:none} .drow .v{color:var(--ink);text-align:right}
+  .modal{background:var(--surface);border-radius:12px;max-width:560px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal .mhd{padding:16px 20px;border-bottom:1px solid var(--line-2);display:flex;justify-content:space-between;gap:12px;position:sticky;top:0;background:var(--surface)}
+  .modal .mhd h3{margin:0;font-size:16px} .modal .mhd .msub{color:var(--muted);font-size:12.5px;margin-top:2px} .modal .mhd .x{background:none;border:0;font-size:22px;color:var(--muted);cursor:pointer}
+  .modal .mbd{padding:6px 20px 16px}
+  .sect{font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.03em;margin:14px 0 2px}
+  .drow{display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-bottom:1px solid var(--line-2);font-size:13px;align-items:center}
+  .drow:last-child{border-bottom:0} .drow .k{color:var(--muted);flex:none} .drow .v{color:var(--ink);text-align:right;word-break:break-word}
   .drow input,.drow select{max-width:230px}
   .mfoot{padding:14px 20px;border-top:1px solid var(--line-2);display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;bottom:0;background:var(--surface)}
-  .mprimary{background:var(--steel);color:#fff;border:0;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
-  .mprimary:hover{background:var(--steel-700)} .mprimary:disabled{opacity:.5;cursor:not-allowed}
-  .attrs{font-size:12.5px;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line-2);border-radius:8px;padding:10px 12px;margin-top:6px}
-  .attrs .mono{color:var(--ink)}
-  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:60;max-width:90%}
-  .toast.err{background:#7a2b2b}
-  .foot{margin-top:34px;color:var(--muted);font-size:12px;text-align:center}
-  @media (prefers-reduced-motion:no-preference){.rline,.pr{animation:in .28s ease both}@keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}}
+  .mprimary{background:var(--steel);color:#fff;border:0;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit} .mprimary:hover{background:var(--steel-700)} .mprimary:disabled{opacity:.5;cursor:not-allowed}
+  .attrs{font-size:12.5px;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line-2);border-radius:8px;padding:10px 12px;margin-top:6px} .attrs .mono{color:var(--ink)}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:60;max-width:90%} .toast.err{background:#7a2b2b}
+  .foot{margin-top:30px;color:var(--muted);font-size:12px;text-align:center}
+  .success{max-width:460px;margin:6vh auto;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:30px;box-shadow:var(--shadow)}
+  .success .ok{width:52px;height:52px;border-radius:50%;background:var(--good-bg);color:var(--good);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px}
+  @media (prefers-reduced-motion:no-preference){.rline,.pr,.ordercard{animation:in .26s ease both}@keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <div class="brand"><h1>Parts Desk</h1><span class="sub">Customer order → purchase requisition</span></div>
-    <div class="status" id="status"><span class="dot" id="dot"></span><span id="statusText">Connecting…</span></div>
-  </header>
-  <div class="grid">
-    <section class="panel">
-      <div class="hd"><h2>New customer order</h2><span class="hint">what the customer asked for</span></div>
-      <div class="bd">
-        <label class="f" for="cust">Customer</label>
-        <input id="cust" value="Acme Power Services" />
-        <div style="height:14px"></div>
-        <label class="f">Order lines — type it the way a customer would</label>
-        <div class="lines" id="lines"></div>
-        <button class="addline" id="addLine">+ Add line</button>
-        <button class="go" id="go" disabled>Generate requisition</button>
-      </div>
-    </section>
-    <section class="panel">
-      <div class="hd"><h2>What we matched</h2><span class="hint">tap any line for details</span></div>
-      <div class="bd"><div id="res" class="empty">Add an order on the left and press <b>Generate requisition</b>. Each line gets matched to a stocked part — or flagged as a new part to create.</div></div>
-    </section>
-  </div>
-  <div class="prs" id="prs"></div>
-  <p class="foot">Live to your parts database. Approving a part or a requisition saves it back to the database.</p>
-</div>
+<div id="app"></div>
 <div id="modalRoot"></div>
 <script>
 const SUPABASE_URL="https://niaykltphhpuehovoltz.supabase.co";
@@ -141,6 +101,7 @@ const SUPABASE_KEY="sb_publishable_Md_KzdxxmhYnZFs9CHXEnw_cpnkfATw";
 const H={apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,"Content-Type":"application/json"};
 async function sbGet(q){const r=await fetch(`${SUPABASE_URL}/rest/v1/${q}`,{headers:H});if(!r.ok)throw new Error(await r.text());return r.json();}
 async function sbPost(t,b,ret){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}`,{method:"POST",headers:{...H,...(ret?{Prefer:"return=representation"}:{})},body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());return ret?r.json():null;}
+async function sbPatch(t,q,b){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}?${q}`,{method:"PATCH",headers:H,body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());}
 
 const INDIAN_STATES=[["MH","Maharashtra"],["KA","Karnataka"],["TN","Tamil Nadu"],["GJ","Gujarat"],["DL","Delhi"],["UP","Uttar Pradesh"],["WB","West Bengal"],["RJ","Rajasthan"],["TS","Telangana"]];
 const SEED_LINES=[{desc:"oil filter for c15",qty:4,state:"MH"},{desc:"12 volt battery",qty:2,state:"MH"},{desc:"radiator 3516 genset",qty:1,state:"KA"},{desc:"hand grinder XYZ-900",qty:1,state:"KA"}];
@@ -148,19 +109,13 @@ const CATS={RM:"Raw Materials",CHM:"Chemicals",PKG:"Packaging",CON:"Production C
 const CLASSIFY=[[/grinder|drill|power tool|cutter|saw/,"TLS","PWR","power tool"],[/spanner|wrench|hammer|plier|screwdriver/,"TLS","HND","hand tool"],[/glove|helmet|goggle|mask|ppe|safety/,"SAF","GLV","safety"],[/filter/,"SPR","FLT","filter"],[/injector/,"SPR","INJ","injector"],[/turbo/,"SPR","TRB","turbocharger"],[/radiator/,"SPR","RAD","radiator"],[/bearing/,"SPR","BRG","bearing"],[/gasket|seal/,"SPR","SEL","gasket"],[/\bbelt\b/,"SPR","BEL","belt"],[/pump/,"SPR","PMP","pump"],[/starter|motor/,"SPR","MOT","motor"],[/battery/,"ELE","BAT","battery"],[/alternator/,"ELE","ALT","alternator"],[/panel/,"ELE","PNL","panel"],[/cable|wire/,"ELE","CBL","cable"],[/avr|regulator|controller/,"INS","CTL","controller"],[/sensor|sender|gauge/,"INS","SEN","sensor"],[/oil|coolant|lubricant/,"CHM","OIL","oil"],[/grease/,"CON","LUB","grease"],[/bolt/,"FAS","BLT","bolt"],[/nut/,"FAS","NUT","nut"]];
 function classify(d){d=(d||"").toLowerCase();for(const[re,c,s,f]of CLASSIFY)if(re.test(d))return{category:c,subcategory:s,family:f};return{category:"SPR",subcategory:"MSC",family:"unclassified"};}
 
-let MATERIALS=[], ST={resolved:[],prs:[]}, prBase=4530;
+let MATERIALS=[], ST={resolved:[],prs:[]}, prBase=4530, session=null, currentOrder=null, connected=false;
+const app=document.getElementById("app"), root=document.getElementById("modalRoot");
+function toast(m,err){const t=document.createElement("div");t.className="toast"+(err?" err":"");t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),err?5200:3000);}
+function fmt(v){return (v===null||v===undefined||v==="")?"—":v;}
+function today(){return new Date().toISOString().slice(0,10);}
 
-function toast(m,err){const t=document.createElement("div");t.className="toast"+(err?" err":"");t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),err?5000:3000);}
-async function loadParts(){
-  try{
-    MATERIALS=await sbGet("material?select=*");
-    setStatus("on",`Connected · ${MATERIALS.length} parts loaded`);
-    document.getElementById("go").disabled=false;
-    try{const p=await sbGet("purchase_requisition?select=pr_number&order=pr_number.desc&limit=1");if(p.length){const n=parseInt(p[0].pr_number.split("-").pop(),10);if(!isNaN(n))prBase=Math.max(prBase,n);}}catch(e){}
-  }catch(e){ setStatus("err","Couldn't reach the database — host this file, then open the link"); }
-}
-function setStatus(k,t){document.getElementById("dot").className="dot "+(k==="on"?"on":k==="err"?"err":"");document.getElementById("statusText").textContent=t;}
-
+/* matching + codes */
 function norm(s){return (s||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim().replace(/\s+/g," ");}
 function trigrams(s){const w=norm(s).split(" ").filter(Boolean);const set=new Set();for(const x of w){const p="  "+x+" ";for(let i=0;i<p.length-2;i++)set.add(p.slice(i,i+3));}return set;}
 function jac(a,b){let i=0;for(const x of a)if(b.has(x))i++;const u=a.size+b.size-i;return u?i/u:0;}
@@ -170,61 +125,126 @@ function modelsOf(m){const a=m.match_attributes||{};const v=[];for(const k of["e
 function score(q,m){const tri=jac(trigrams(q),trigrams(m.normalized_description||m.short_description));const tok=ov(tk(q),tk((m.normalized_description||"")+" "+(m.short_description||"")));let s=0.55*tri+0.45*tok;const qt=tk(q),mo=modelsOf(m);if(mo.length&&mo.some(x=>qt.has(x)))s+=0.22;return Math.min(1,s);}
 function resolve(q){const r=MATERIALS.map(m=>({m,s:score(q,m)})).sort((a,b)=>b.s-a.s);const b=r[0]||{s:0};const st=b.s>=0.42?"match":b.s>=0.26?"review":"new";return{status:st,best:b.m,bestScore:b.s,candidates:r.slice(0,3)};}
 function nextSeq(cat,sub){const p=`${cat}-${sub}-`;let mx=0;for(const m of MATERIALS){if((m.material_code||"").startsWith(p)){const n=parseInt(m.material_code.slice(p.length),10);if(n>mx)mx=n;}}return String(mx+1).padStart(5,"0");}
-function makeProvisional(desc){const c=classify(desc);return{material_code:`${c.category}-${c.subcategory}-${nextSeq(c.category,c.subcategory)}`,status:"provisional",short_description:desc,normalized_description:norm(desc),category:c.category,subcategory:c.subcategory,material_group:c.family,base_uom:"NOS",hsn_code:"",gst_rate:18,tax_classification:"taxable",match_attributes:{part_family:c.family,source_text:desc},source:"so_auto",_new:true};}
+function makeProvisional(desc){const c=classify(desc);return{material_code:`${c.category}-${c.subcategory}-${nextSeq(c.category,c.subcategory)}`,status:"provisional",short_description:desc,long_description:desc,normalized_description:norm(desc),category:c.category,subcategory:c.subcategory,material_group:c.family,base_uom:"NOS",hsn_code:"",gst_rate:18,tax_classification:"taxable",match_attributes:{part_family:c.family,source_text:desc},source:"so_auto",external_refs:{}};}
 
-const linesEl=document.getElementById("lines");
+/* ---------------- LOGIN ---------------- */
+function renderLogin(){
+  root.innerHTML="";
+  app.innerHTML=`<div class="wrap"><div class="login">
+    <div class="logo">Parts Desk</div><div class="tl">Customer order → purchase requisition</div>
+    <div class="cards">
+      <div class="lcard" id="asCust"><h3>I'm a Customer</h3><p>Place a parts order in your own words.</p></div>
+      <div class="lcard" id="asAdmin"><h3>I'm the Admin</h3><p>Review orders, match parts, approve requisitions.</p></div>
+    </div>
+    <div id="loginForm"></div>
+    <div class="status" style="margin-top:22px" id="status"><span class="dot" id="dot"></span><span id="statusText">Connecting…</span></div>
+  </div></div>`;
+  if(connected)setStatus("on",`Connected · ${MATERIALS.length} parts loaded`);
+  document.getElementById("asCust").onclick=()=>{document.getElementById("loginForm").innerHTML=`<div class="lform"><label class="f">Your company name</label><input id="cn" value="Acme Power Services"><button class="go" id="cGo">Enter customer portal</button></div>`;document.getElementById("cGo").onclick=()=>{session={role:"customer",name:document.getElementById("cn").value.trim()||"Customer"};renderCustomer();};};
+  document.getElementById("asAdmin").onclick=()=>{document.getElementById("loginForm").innerHTML=`<div class="lform"><label class="f">Admin password</label><input id="pw" type="password" placeholder="password"><div class="hintline">Demo password: <b>admin123</b></div><button class="go" id="aGo">Enter admin portal</button></div>`;document.getElementById("aGo").onclick=()=>{if(document.getElementById("pw").value==="admin123"){session={role:"admin"};renderAdmin();}else toast("Wrong password — try admin123",true);};};
+}
+function setStatus(k,t){const d=document.getElementById("dot"),s=document.getElementById("statusText");if(d)d.className="dot "+(k==="on"?"on":k==="err"?"err":"");if(s)s.textContent=t;}
+function header(title,sub){return `<header class="top"><div class="brand"><h1>${title}</h1><span class="sub">${sub}</span></div><div class="who"><span class="role">${session.role==="admin"?"Admin":session.name}</span><button class="lnk" onclick="logout()">Log out</button></div></header>`;}
+function logout(){session=null;currentOrder=null;ST={resolved:[],prs:[]};renderLogin();}
+
+/* ---------------- CUSTOMER ---------------- */
+function renderCustomer(){
+  root.innerHTML="";
+  app.innerHTML=`<div class="wrap">${header("Parts Desk","place a parts order")}
+    <div style="max-width:640px;margin:0 auto"><section class="panel">
+      <div class="hd"><h2>New parts order</h2><span class="hint">describe what you need</span></div>
+      <div class="bd">
+        <label class="f">Company</label><input id="cust" value="${session.name}">
+        <div style="height:14px"></div>
+        <label class="f">Order lines — type it however you like</label>
+        <div class="lines" id="lines"></div>
+        <button class="addline" id="addLine">+ Add line</button>
+        <button class="go" id="send">Send order to procurement</button>
+      </div></section></div></div>`;
+  const linesEl=document.getElementById("lines");
+  SEED_LINES.forEach(l=>linesEl.appendChild(lineRow(l)));
+  document.getElementById("addLine").onclick=()=>linesEl.appendChild(lineRow());
+  document.getElementById("send").onclick=sendOrder;
+}
 function stOpts(sel){return INDIAN_STATES.map(([c,n])=>`<option value="${c}" ${c===sel?"selected":""}>${c} — ${n}</option>`).join("");}
-function lineRow(l={desc:"",qty:1,state:"MH"}){const d=document.createElement("div");d.className="line";d.innerHTML=`<div><input class="d" placeholder="e.g. fuel filter for c15" value="${l.desc}"></div><div><input class="q" type="number" min="1" value="${l.qty}"></div><div><select class="s">${stOpts(l.state)}</select></div><button class="rm" title="Remove">×</button>`;d.querySelector(".rm").onclick=()=>d.remove();return d;}
-SEED_LINES.forEach(l=>linesEl.appendChild(lineRow(l)));
-document.getElementById("addLine").onclick=()=>linesEl.appendChild(lineRow());
-function readOrder(){const cust=document.getElementById("cust").value.trim()||"Customer";const lines=[...linesEl.querySelectorAll(".line")].map((r,i)=>({line_no:i+1,desc:r.querySelector(".d").value.trim(),qty:+r.querySelector(".q").value||1,state:r.querySelector(".s").value})).filter(l=>l.desc);return{cust,lines};}
-
-document.getElementById("go").onclick=()=>{
-  const order=readOrder(); if(!order.lines.length) return;
+function lineRow(l={desc:"",qty:1,state:"MH"}){const d=document.createElement("div");d.className="line";d.innerHTML=`<div><input class="d" placeholder="e.g. fuel filter for c15" value="${l.desc}"></div><div><input class="q" type="number" min="1" value="${l.qty}"></div><div><select class="s">${stOpts(l.state)}</select></div><button class="rm">×</button>`;d.querySelector(".rm").onclick=()=>d.remove();return d;}
+async function sendOrder(){
+  const cust=document.getElementById("cust").value.trim()||"Customer";
+  const lines=[...document.querySelectorAll("#lines .line")].map((r,i)=>({line_no:i+1,item_description:r.querySelector(".d").value.trim(),quantity:+r.querySelector(".q").value||1,uom:"NOS",ship_to_state:r.querySelector(".s").value})).filter(l=>l.item_description);
+  if(!lines.length){toast("Add at least one line",true);return;}
+  const btn=document.getElementById("send");btn.disabled=true;btn.textContent="Sending…";
   const soRef="SO-2026-"+String(Date.now()).slice(-6);
-  const resolved=order.lines.map(l=>{const r=resolve(l.desc);const material=r.status==="new"?makeProvisional(l.desc):r.best;return{...l,status:r.status,score:r.bestScore,candidates:r.candidates,material,confirmed:false};});
-  let tmp=prBase;
-  const states=[...new Set(resolved.map(r=>r.state))];
-  const prs=states.map(st=>({prNo:"PR-2026-"+String(++tmp).padStart(6,"0"),tentative:true,cust:order.cust,soRef,state:st,stName:(INDIAN_STATES.find(s=>s[0]===st)||[st,st])[1],lines:resolved.filter(r=>r.state===st),approved:false}));
-  ST={resolved,prs};
-  renderAll();
-  document.getElementById("prs").scrollIntoView({behavior:"smooth",block:"start"});
-};
+  try{
+    const head=await sbPost("sales_order",{so_reference:soRef,customer_name:cust,order_date:today(),status:"received",source:"api"},true);
+    const soId=head[0].so_id;
+    await sbPost("sales_order_line",lines.map(l=>({so_id:soId,...l})),false);
+    app.innerHTML=`<div class="wrap"><div class="success"><div class="ok">✓</div><h2 style="margin:0 0 6px">Order sent</h2><p style="color:var(--muted);margin:0 0 4px">Your order <b class="mono">${soRef}</b> is now with procurement.</p><p style="color:var(--muted);font-size:13px">They'll match each line to a part and raise the requisition.</p><div style="margin-top:18px;display:flex;gap:10px;justify-content:center"><button class="btn2" onclick="renderCustomer()">Send another order</button><button class="btn2" onclick="logout()">Log out</button></div></div></div>`;
+  }catch(e){btn.disabled=false;btn.textContent="Send order to procurement";toast("Couldn't send — run enable_customer_orders.sql ("+String(e.message).slice(0,50)+")",true);console.error(e);}
+}
 
+/* ---------------- ADMIN: order list ---------------- */
+async function renderAdmin(){
+  root.innerHTML="";
+  app.innerHTML=`<div class="wrap">${header("Parts Desk — Admin","incoming customer orders")}
+    <section class="panel"><div class="hd"><h2>Incoming orders</h2><button class="lnk" onclick="renderAdmin()">↻ Refresh</button></div>
+    <div class="bd" id="orderList"><div class="empty">Loading orders…</div></div></section></div>`;
+  try{
+    const orders=await sbGet("sales_order?select=*,sales_order_line(*)&status=in.(received,processing,pr_drafted)&order=created_at.desc");
+    const el=document.getElementById("orderList");
+    if(!orders.length){el.innerHTML=`<div class="empty">No open orders yet. Place one from the Customer portal, then hit Refresh.</div>`;return;}
+    el.innerHTML="";el.style.display="flex";el.style.flexDirection="column";el.style.gap="10px";
+    orders.forEach(o=>{
+      const div=document.createElement("div");div.className="ordercard";
+      div.innerHTML=`<div><div style="font-weight:600"><span class="mono">${o.so_reference}</span> · ${o.customer_name||"Customer"}</div><div class="oc-meta">${(o.sales_order_line||[]).length} line(s) · ${o.order_date||""} · <span class="badge ${o.status==="pr_drafted"?"active":"review"}">${o.status}</span></div></div><button class="btn2">Open</button>`;
+      div.querySelector("button").onclick=()=>openOrder(o);
+      el.appendChild(div);
+    });
+  }catch(e){document.getElementById("orderList").innerHTML=`<div class="empty">Couldn't load orders — did you run enable_customer_orders.sql?</div>`;console.error(e);}
+}
+
+/* ---------------- ADMIN: order workspace ---------------- */
+function openOrder(o){
+  currentOrder=o;
+  const lines=(o.sales_order_line||[]).sort((a,b)=>a.line_no-b.line_no).map(l=>({line_no:l.line_no,desc:l.item_description,qty:+l.quantity,state:l.ship_to_state||"MH"}));
+  const soRef=o.so_reference;
+  const resolved=lines.map(l=>{const r=resolve(l.desc);const material=r.status==="new"?makeProvisional(l.desc):r.best;return{...l,status:r.status,score:r.bestScore,candidates:r.candidates,material,confirmed:false};});
+  const states=[...new Set(resolved.map(r=>r.state))];
+  let tmp=prBase;
+  const prs=states.map(st=>({prNo:"PR-2026-"+String(++tmp).padStart(6,"0"),tentative:true,cust:o.customer_name,soRef,state:st,stName:(INDIAN_STATES.find(s=>s[0]===st)||[st,st])[1],lines:resolved.filter(r=>r.state===st),approved:false,pr_id:null}));
+  ST={resolved,prs};
+  app.innerHTML=`<div class="wrap">${header("Parts Desk — Admin","order workspace")}
+    <button class="lnk" onclick="renderAdmin()">← Back to orders</button>
+    <div class="panel" style="margin:10px 0 18px"><div class="bd" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div><div style="font-weight:600"><span class="mono">${o.so_reference}</span> · ${o.customer_name}</div><div style="font-size:12.5px;color:var(--muted)">${resolved.length} line(s) · placed ${o.order_date||""}</div></div></div></div>
+    <section class="panel"><div class="hd"><h2>What we matched</h2><span class="hint">tap any line for details</span></div><div class="bd"><div id="res" class="res"></div></div></section>
+    <div class="prs" id="prs"></div></div>`;
+  renderAll();
+  sbPatch("sales_order","so_id=eq."+o.so_id,{status:"pr_drafted"}).catch(()=>{});
+}
+
+/* shared render */
 function isBlocking(l){return (l.status==="new"&&l.material.status!=="active")||(l.status==="review"&&!l.confirmed);}
 function prPending(pr){return pr.lines.some(isBlocking);}
 function meter(s){const p=Math.round(s*100);const c=s>=0.42?"var(--good)":s>=0.26?"var(--amber)":"var(--steel)";return `<div class="meter"><i style="width:${Math.max(6,p)}%;background:${c}"></i></div><div class="conf">${p}%</div>`;}
-function lineBadge(l){
-  if(l.status==="new") return l.material.status==="active"?`<span class="badge active">Active</span>`:`<span class="badge new">New part</span>`;
-  if(l.status==="review") return l.confirmed?`<span class="badge match">Matched</span>`:`<span class="badge review">Check this</span>`;
-  return `<span class="badge match">Matched</span>`;
-}
+function lineBadge(l){if(l.status==="new")return l.material.status==="active"?`<span class="badge active">Active</span>`:`<span class="badge new">New part</span>`;if(l.status==="review")return l.confirmed?`<span class="badge match">Matched</span>`:`<span class="badge review">Check this</span>`;return `<span class="badge match">Matched</span>`;}
 function renderResolution(){
-  const el=document.getElementById("res");el.className="res";el.innerHTML="";
+  const el=document.getElementById("res");if(!el)return;el.innerHTML="";
   ST.resolved.forEach(l=>{
     const div=document.createElement("div");div.className="rline"+(isBlocking(l)?" pend":"");
-    const codeLine=l.status==="new"
-      ?`<div class="rcode">→ <span class="mono">${l.material.material_code}</span> · ${l.material.status==="active"?"created &amp; active":"new code, pending approval"} <span class="tap">· tap to review</span></div>`
-      :`<div class="rcode">→ <span class="mono">${l.material.material_code}</span> · ${l.material.short_description} <span class="tap">· tap ${l.status==="review"&&!l.confirmed?"to confirm":"for details"}</span></div>`;
+    const codeLine=l.status==="new"?`<div class="rcode">→ <span class="mono">${l.material.material_code}</span> · ${l.material.status==="active"?"created &amp; active":"new code, pending approval"} <span class="tap">· tap to review</span></div>`:`<div class="rcode">→ <span class="mono">${l.material.material_code}</span> · ${l.material.short_description} <span class="tap">· tap ${l.status==="review"&&!l.confirmed?"to confirm":"for details"}</span></div>`;
     const cand=(l.status!=="new"&&l.candidates.length>1)?`<div class="cands">also considered: ${l.candidates.slice(1).map(c=>`<span>${c.m.short_description}</span> (${Math.round(c.s*100)}%)`).join(", ")}</div>`:"";
     div.innerHTML=`<div class="row"><div class="q"><div class="qtext">${l.desc}</div><div class="qmeta">qty <span class="mono">${l.qty}</span> · ship to <span class="mono">${l.state}</span></div></div>${meter(l.score)}${lineBadge(l)}</div>${codeLine}${cand}`;
-    div.onclick=()=>openMaterial(l);
-    el.appendChild(div);
+    div.onclick=()=>openMaterial(l);el.appendChild(div);
   });
 }
 function renderPRs(){
-  const wrap=document.getElementById("prs");wrap.innerHTML="";if(!ST.prs.length)return;
-  const head=document.createElement("div");head.innerHTML=`<h2>Draft requisitions</h2><p class="lead">One requisition per delivery state — ${ST.prs.length} in this order. New parts and unconfirmed matches must be cleared before a requisition can go through.</p>`;wrap.appendChild(head);
+  const wrap=document.getElementById("prs");if(!wrap)return;wrap.innerHTML="";if(!ST.prs.length)return;
+  const head=document.createElement("div");head.innerHTML=`<h2>Draft requisitions</h2><p class="lead">One requisition per delivery state — ${ST.prs.length} in this order. New parts and unconfirmed matches must be cleared first.</p>`;wrap.appendChild(head);
   ST.prs.forEach(pr=>{
-    const pending=prPending(pr);
-    const el=document.createElement("div");el.className="pr"+(pr.approved?" approved":"");
-    el.innerHTML=`<div class="phd" title="View full requisition"><div><div class="pnum">Requisition <span class="mono">${pr.prNo}</span></div><div class="pmeta">${pr.cust} · deliver to ${pr.stName} (${pr.state}) · ${pr.lines.length} line${pr.lines.length>1?"s":""}</div></div><div class="act">${pr.approved?'<span class="approved-tag">✓ Approved</span>':''}</div></div>
-      <table><tr><th>Part</th><th>Code</th><th>Qty</th><th>Status</th></tr>
-      ${pr.lines.map((l,i)=>`<tr><td>${l.material.short_description}</td><td class="mono">${l.material.material_code}</td><td class="mono">${l.qty}</td><td>${
-        l.status==="new"&&l.material.status!=="active"?`<span class="badge new">provisional</span><span class="flag" data-i="${i}">approve part</span>`
-        :l.status==="review"&&!l.confirmed?`<span class="badge review">check</span><span class="flag" data-i="${i}">confirm match</span>`
-        :lineBadge(l)}</td></tr>`).join("")}</table>
-      <div class="pfoot"><span class="vend">${pending?'<span class="gatehint">Clear the flagged lines before approving this requisition.</span>':'Preferred vendor: none yet — set on approval'}</span>${pr.approved?'<span class="approved-tag">✓ Approved · saved to database</span>':`<button class="approve" ${pending?"disabled":""}>Approve requisition</button>`}</div>`;
+    const pending=prPending(pr);const el=document.createElement("div");el.className="pr"+(pr.approved?" approved":"");
+    el.innerHTML=`<div class="phd"><div><div class="pnum">Requisition <span class="mono">${pr.prNo}</span></div><div class="pmeta">${pr.cust} · deliver to ${pr.stName} (${pr.state}) · ${pr.lines.length} line(s)</div></div><div class="act">${pr.approved?'<span class="approved-tag">✓ Approved</span>':''}</div></div>
+      <table><tr><th>Part</th><th>Code</th><th>Qty</th><th>Status</th></tr>${pr.lines.map((l,i)=>`<tr><td>${l.material.short_description}</td><td class="mono">${l.material.material_code}</td><td class="mono">${l.qty}</td><td>${l.status==="new"&&l.material.status!=="active"?`<span class="badge new">provisional</span><span class="flag" data-i="${i}">approve part</span>`:l.status==="review"&&!l.confirmed?`<span class="badge review">check</span><span class="flag" data-i="${i}">confirm match</span>`:lineBadge(l)}</td></tr>`).join("")}</table>
+      <div class="pfoot"><span class="vend">${pending?'<span class="gatehint">Clear the flagged lines before approving.</span>':'Preferred vendor: none yet — set on approval'}</span>${pr.approved?'<span class="approved-tag">✓ Approved · saved to database</span>':`<button class="approve" ${pending?"disabled":""}>Approve requisition</button>`}</div>`;
     el.querySelector(".phd").onclick=()=>openPR(pr);
     el.querySelectorAll(".flag").forEach(f=>f.onclick=(e)=>{e.stopPropagation();openMaterial(pr.lines[+f.dataset.i]);});
     const ab=el.querySelector(".approve");if(ab)ab.onclick=()=>approvePR(pr);
@@ -233,82 +253,116 @@ function renderPRs(){
 }
 function renderAll(){renderResolution();renderPRs();}
 
-async function nextPrNumber(){
-  let mx=prBase;
-  try{const r=await sbGet("purchase_requisition?select=pr_number&order=pr_number.desc&limit=1");if(r.length){const n=parseInt(r[0].pr_number.split("-").pop(),10);if(!isNaN(n))mx=Math.max(mx,n);}}catch(e){}
-  mx+=1;prBase=mx;return "PR-2026-"+String(mx).padStart(6,"0");
-}
+async function nextPrNumber(){let mx=prBase;try{const r=await sbGet("purchase_requisition?select=pr_number&order=pr_number.desc&limit=1");if(r.length){const n=parseInt(r[0].pr_number.split("-").pop(),10);if(!isNaN(n))mx=Math.max(mx,n);}}catch(e){}mx+=1;prBase=mx;return "PR-2026-"+String(mx).padStart(6,"0");}
 async function approvePR(pr){
   if(prPending(pr))return;
   try{
-    pr.prNo=await nextPrNumber(); pr.tentative=false;
-    const head=await sbPost("purchase_requisition",{pr_number:pr.prNo,source_so_ref:pr.soRef,ship_to_state:pr.state,status:"approved"},true);
-    const prId=head[0].pr_id;
-    const lines=pr.lines.map(l=>({pr_id:prId,line_no:l.line_no,material_code:l.material.material_code,description:l.material.short_description,quantity:l.qty,uom:l.material.base_uom||"NOS",source_so_line:l.line_no,is_new_material:l.status==="new",match_confidence:l.status==="new"?null:Math.min(0.999,+l.score.toFixed(3))}));
+    pr.prNo=await nextPrNumber();pr.tentative=false;
+    const head=await sbPost("purchase_requisition",{pr_number:pr.prNo,source_so_ref:pr.soRef,ship_to_state:pr.state,status:"approved",plant:null,delivery_date:null,approver:"admin",decided_at:new Date().toISOString()},true);
+    pr.pr_id=head[0].pr_id;
+    const lines=pr.lines.map(l=>({pr_id:pr.pr_id,line_no:l.line_no,material_code:l.material.material_code,description:l.material.short_description,quantity:l.qty,uom:l.material.base_uom||"NOS",source_so_line:l.line_no,is_new_material:l.status==="new",match_confidence:l.status==="new"?null:Math.min(0.999,+l.score.toFixed(3))}));
     await sbPost("pr_line",lines,false);
     pr.approved=true;renderAll();toast("Requisition "+pr.prNo+" saved to database");
-  }catch(e){toast("Couldn't save requisition — did you run the write-access SQL? ("+String(e.message).slice(0,60)+")",true);console.error(e);}
+  }catch(e){toast("Couldn't save requisition ("+String(e.message).slice(0,50)+")",true);console.error(e);}
 }
 
-const root=document.getElementById("modalRoot");
+/* ---------------- MODALS (full contract fields) ---------------- */
 function closeModal(){root.innerHTML="";}
-function shell(title,sub,body,foot){root.innerHTML=`<div class="overlay"><div class="modal"><div class="mhd"><div><h3>${title}</h3>${sub?`<div class="msub">${sub}</div>`:""}</div><button class="x" title="Close">×</button></div><div class="mbd">${body}</div>${foot?`<div class="mfoot">${foot}</div>`:""}</div></div>`;root.querySelector(".overlay").onclick=e=>{if(e.target.classList.contains("overlay"))closeModal();};root.querySelector(".x").onclick=closeModal;}
+function shell(title,sub,body,foot){root.innerHTML=`<div class="overlay"><div class="modal"><div class="mhd"><div><h3>${title}</h3>${sub?`<div class="msub">${sub}</div>`:""}</div><button class="x">×</button></div><div class="mbd">${body}</div>${foot?`<div class="mfoot">${foot}</div>`:""}</div></div>`;root.querySelector(".overlay").onclick=e=>{if(e.target.classList.contains("overlay"))closeModal();};root.querySelector(".x").onclick=closeModal;}
 function drow(k,v){return `<div class="drow"><span class="k">${k}</span><span class="v">${v}</span></div>`;}
+function sect(t){return `<div class="sect">${t}</div>`;}
+function attrsBlock(a){a=a||{};return Object.keys(a).length?`<div class="attrs">${Object.entries(a).map(([k,v])=>`${k}: <span class="mono">${typeof v==="object"?JSON.stringify(v):v}</span>`).join(" &nbsp;·&nbsp; ")}</div>`:"—";}
 
+function materialFullBody(m){
+  return sect("IDENTITY")
+    +drow("material_id",`<span class="mono">${fmt(m.material_id)}</span>`)
+    +drow("material_code",`<span class="mono" style="font-weight:600">${fmt(m.material_code)}</span>`)
+    +drow("status",`<span class="badge ${m.status==="active"?"active":m.status==="provisional"?"new":"review"}">${fmt(m.status)}</span>`)
+    +sect("DESCRIPTION")
+    +drow("short_description",fmt(m.short_description))
+    +drow("long_description",fmt(m.long_description))
+    +drow("normalized_description",`<span class="mono">${fmt(m.normalized_description)}</span>`)
+    +sect("CLASSIFICATION")
+    +drow("category",`${fmt(m.category)}${m.category?" — "+(CATS[m.category]||""):""}`)
+    +drow("subcategory",fmt(m.subcategory))
+    +drow("material_group",fmt(m.material_group))
+    +drow("base_uom",fmt(m.base_uom))
+    +sect("TAX")
+    +drow("hsn_code",fmt(m.hsn_code))
+    +drow("gst_rate",m.gst_rate!=null&&m.gst_rate!==""?m.gst_rate+"%":"—")
+    +drow("tax_classification",fmt(m.tax_classification))
+    +sect("MATCH ATTRIBUTES")+`<div style="padding:6px 0">${attrsBlock(m.match_attributes)}</div>`
+    +sect("SYSTEM")
+    +drow("source",fmt(m.source))
+    +drow("external_refs",`<span class="mono">${m.external_refs&&Object.keys(m.external_refs).length?JSON.stringify(m.external_refs):"—"}</span>`)
+    +drow("created_by",fmt(m.created_by))+drow("created_at",fmt(m.created_at))
+    +drow("updated_by",fmt(m.updated_by))+drow("updated_at",fmt(m.updated_at));
+}
 function openMaterial(l){
   const m=l.material;
   if(l.status==="new"&&m.status!=="active"){
     const catOpts=Object.entries(CATS).map(([c,n])=>`<option value="${c}" ${c===m.category?"selected":""}>${c} — ${n}</option>`).join("");
-    const body=`${drow("Requested as",m.match_attributes.source_text)}
-      <div class="drow"><span class="k">Description</span><input id="f_desc" value="${m.short_description}"></div>
-      <div class="drow"><span class="k">Category</span><select id="f_cat">${catOpts}</select></div>
-      <div class="drow"><span class="k">Subcategory</span><input id="f_sub" value="${m.subcategory}" maxlength="4" style="max-width:90px;text-transform:uppercase"></div>
-      <div class="drow"><span class="k">Unit</span><select id="f_uom"><option>NOS</option><option>SET</option><option>L</option><option>KG</option></select></div>
-      <div class="drow"><span class="k">HSN code</span><input id="f_hsn" value="${m.hsn_code||""}" placeholder="e.g. 8467" style="max-width:120px"></div>
-      <div class="drow"><span class="k">GST %</span><input id="f_gst" type="number" value="${m.gst_rate}" style="max-width:80px"></div>
-      ${drow("Generated code",`<span class="mono" id="f_code" style="color:var(--steel);font-weight:600">${m.material_code}</span>`)}
-      ${drow("Status",`<span class="badge new">provisional</span>`)}`;
-    const foot=`<span class="vend" style="font-size:12.5px;color:var(--muted)">Approving saves the part and unlocks its requisition.</span><button class="mprimary" id="ap">Approve part</button>`;
-    shell("Review new part",`From order line · ${m.match_attributes.source_text}`,body,foot);
+    const body=sect("REVIEW & EDIT")+drow("Requested as",m.match_attributes.source_text)
+      +`<div class="drow"><span class="k">short_description</span><input id="f_desc" value="${m.short_description}"></div>
+      <div class="drow"><span class="k">category</span><select id="f_cat">${catOpts}</select></div>
+      <div class="drow"><span class="k">subcategory</span><input id="f_sub" value="${m.subcategory}" maxlength="4" style="max-width:90px;text-transform:uppercase"></div>
+      <div class="drow"><span class="k">base_uom</span><select id="f_uom"><option>NOS</option><option>SET</option><option>L</option><option>KG</option></select></div>
+      <div class="drow"><span class="k">hsn_code</span><input id="f_hsn" value="${m.hsn_code||""}" placeholder="e.g. 8467" style="max-width:120px"></div>
+      <div class="drow"><span class="k">gst_rate</span><input id="f_gst" type="number" value="${m.gst_rate}" style="max-width:80px"></div>`
+      +drow("generated code",`<span class="mono" id="f_code" style="color:var(--steel);font-weight:600">${m.material_code}</span>`)
+      +drow("status",`<span class="badge new">provisional</span>`)
+      +sect("MATCH ATTRIBUTES")+`<div style="padding:6px 0">${attrsBlock(m.match_attributes)}</div>`;
+    shell("Review new part",`From order line · ${m.match_attributes.source_text}`,body,`<span class="vend" style="font-size:12.5px;color:var(--muted)">Approving saves it and unlocks the requisition.</span><button class="mprimary" id="ap">Approve part</button>`);
     const recode=()=>{const c=root.querySelector("#f_cat").value,s=(root.querySelector("#f_sub").value||"MSC").toUpperCase();root.querySelector("#f_code").textContent=`${c}-${s}-${nextSeq(c,s)}`;};
     root.querySelector("#f_cat").onchange=recode;root.querySelector("#f_sub").oninput=recode;
     root.querySelector("#ap").onclick=async(ev)=>{
-      const btn=ev.target;btn.disabled=true;btn.textContent="Saving…";
-      m.short_description=root.querySelector("#f_desc").value.trim()||m.short_description;
+      const b=ev.target;b.disabled=true;b.textContent="Saving…";
+      m.short_description=root.querySelector("#f_desc").value.trim()||m.short_description;m.long_description=m.short_description;
       m.category=root.querySelector("#f_cat").value;m.subcategory=(root.querySelector("#f_sub").value||"MSC").toUpperCase();
       m.base_uom=root.querySelector("#f_uom").value;m.hsn_code=root.querySelector("#f_hsn").value.trim();m.gst_rate=+root.querySelector("#f_gst").value||18;
       m.material_code=root.querySelector("#f_code").textContent;m.normalized_description=norm(m.short_description);
-      try{
-        await sbPost("material",{material_code:m.material_code,status:"active",short_description:m.short_description,long_description:m.short_description,normalized_description:m.normalized_description,category:m.category,subcategory:m.subcategory,material_group:m.material_group,base_uom:m.base_uom,hsn_code:m.hsn_code||null,gst_rate:m.gst_rate,tax_classification:m.tax_classification,match_attributes:m.match_attributes,source:"so_auto"},false);
-        m.status="active";m._new=false;MATERIALS.push(m);closeModal();renderAll();toast("Part "+m.material_code+" saved to database");
-      }catch(e){btn.disabled=false;btn.textContent="Approve part";toast("Couldn't save part — did you run the write-access SQL? ("+String(e.message).slice(0,60)+")",true);console.error(e);}
+      try{const rep=await sbPost("material",{material_code:m.material_code,status:"active",short_description:m.short_description,long_description:m.long_description,normalized_description:m.normalized_description,category:m.category,subcategory:m.subcategory,material_group:m.material_group,base_uom:m.base_uom,hsn_code:m.hsn_code||null,gst_rate:m.gst_rate,tax_classification:m.tax_classification,match_attributes:m.match_attributes,source:"so_auto"},true);
+        if(rep&&rep[0])Object.assign(m,rep[0]);m.status="active";MATERIALS.push(m);closeModal();renderAll();toast("Part "+m.material_code+" saved to database");
+      }catch(e){b.disabled=false;b.textContent="Approve part";toast("Couldn't save part ("+String(e.message).slice(0,50)+")",true);console.error(e);}
     };
   } else if(l.status==="review"&&!l.confirmed){
-    const a=m.match_attributes||{};
-    const attrs=Object.keys(a).length?`<div class="attrs">${Object.entries(a).map(([k,v])=>`${k}: <span class="mono">${v}</span>`).join(" &nbsp;·&nbsp; ")}</div>`:"";
-    const body=`${drow("Order line",l.desc)}${drow("Best match",`<span class="mono" style="font-weight:600">${m.material_code}</span> · ${m.short_description}`)}${drow("Confidence",Math.round(l.score*100)+"%")}${drow("Category",`${m.category} — ${CATS[m.category]||""}`)}${drow("HSN / GST",`${m.hsn_code||"—"} · ${m.gst_rate!=null?m.gst_rate+"%":"—"}`)}${attrs}<div class="attrs" style="border-color:var(--warn-bg);background:var(--warn-bg);color:var(--warn)">Low-confidence match — confirm this is the right part before it goes on the requisition.</div>`;
-    const foot=`<span class="vend" style="font-size:12.5px;color:var(--muted)">Confirming unlocks the requisition.</span><button class="mprimary" id="cf">Confirm match</button>`;
-    shell("Confirm match",`Order line · ${l.desc}`,body,foot);
+    const body=drow("Order line",l.desc)+drow("Best match confidence",Math.round(l.score*100)+"%")+materialFullBody(m)+`<div class="attrs" style="border-color:var(--warn-bg);background:var(--warn-bg);color:var(--warn)">Low-confidence match — confirm this is the right part before it goes on the requisition.</div>`;
+    shell("Confirm match",`Order line · ${l.desc}`,body,`<span class="vend" style="font-size:12.5px;color:var(--muted)">Confirming unlocks the requisition.</span><button class="mprimary" id="cf">Confirm match</button>`);
     root.querySelector("#cf").onclick=()=>{l.confirmed=true;closeModal();renderAll();toast("Match confirmed");};
   } else {
-    const a=m.match_attributes||{};
-    const attrs=Object.keys(a).length?`<div class="attrs">${Object.entries(a).map(([k,v])=>`${k}: <span class="mono">${v}</span>`).join(" &nbsp;·&nbsp; ")}</div>`:"";
-    const body=`${drow("Code",`<span class="mono" style="font-weight:600">${m.material_code}</span>`)}${drow("Description",m.short_description)}${drow("Category",`${m.category} — ${CATS[m.category]||""}`)}${drow("Subcategory",m.subcategory)}${drow("Group",m.material_group||"—")}${drow("Unit",m.base_uom||"—")}${drow("HSN / GST",`${m.hsn_code||"—"} · ${m.gst_rate!=null?m.gst_rate+"%":"—"}`)}${drow("Status",`<span class="badge active">${m.status||"active"}</span>`)}${attrs}`;
-    shell(m.short_description,`Part code ${m.material_code}`,body,"");
+    shell(m.short_description,`Material · ${m.material_code}`,materialFullBody(m),"");
   }
 }
 function openPR(pr){
   const pending=prPending(pr);
-  const body=`${drow("Requisition",`<span class="mono" style="font-weight:600">${pr.prNo}</span>`)}${drow("Customer",pr.cust)}${drow("Deliver to",`${pr.stName} (${pr.state})`)}${drow("Status",pr.approved?`<span class="approved-tag">✓ Approved</span>`:pending?`<span class="badge new">blocked — flagged lines</span>`:`<span class="badge review">draft</span>`)}<div style="height:8px"></div>
-    <table style="width:100%;border-collapse:collapse;font-size:13.5px"><tr style="color:var(--muted);font-size:12px"><th style="text-align:left;padding:6px 0">Part</th><th style="text-align:left">Code</th><th style="text-align:left">Qty</th><th style="text-align:left">Status</th></tr>
-    ${pr.lines.map(l=>`<tr style="border-top:1px solid var(--line-2)"><td style="padding:8px 0">${l.material.short_description}</td><td class="mono">${l.material.material_code}</td><td class="mono">${l.qty}</td><td>${l.status==="new"&&l.material.status!=="active"?'<span class="badge new">provisional</span>':l.status==="review"&&!l.confirmed?'<span class="badge review">check</span>':(l.status==="new"?'<span class="badge active">active</span>':'<span class="badge match">matched</span>')}</td></tr>`).join("")}</table>
-    ${drow("Preferred vendor",pr.approved?"set on approval":"none yet")}`;
-  const foot=pr.approved?`<span class="vend" style="font-size:12.5px;color:var(--good)">Saved to database.</span><button class="mprimary" onclick="document.getElementById('modalRoot').innerHTML=''">Close</button>`
-    :`<span class="vend" style="font-size:12.5px;color:var(--muted)">${pending?"Clear the flagged lines first.":"Ready to approve."}</span><button class="mprimary" id="pa" ${pending?"disabled":""}>Approve requisition</button>`;
+  const body=sect("HEADER")
+    +drow("pr_id",`<span class="mono">${fmt(pr.pr_id)}</span>`)
+    +drow("pr_number",`<span class="mono" style="font-weight:600">${pr.prNo}</span>`)
+    +drow("source_so_ref",`<span class="mono">${fmt(pr.soRef)}</span>`)
+    +drow("customer",fmt(pr.cust))
+    +drow("ship_to_state",`${pr.stName} (${pr.state})`)
+    +drow("status",pr.approved?`<span class="approved-tag">approved</span>`:pending?`<span class="badge new">blocked</span>`:`<span class="badge review">draft</span>`)
+    +drow("plant","—")+drow("delivery_date","—")
+    +sect("VENDOR")
+    +drow("suggested_vendor","none — no order history yet")+drow("vendor","set on approval")
+    +sect("APPROVAL")
+    +drow("approver",pr.approved?"admin":"—")+drow("decided_at",pr.approved?"just now":"—")+drow("approval_comments","—")
+    +drow("external_refs.sap_pr_no","— (out of scope — Procol sync)")
+    +sect("LINES ("+pr.lines.length+")")
+    +`<table style="width:100%;border-collapse:collapse;font-size:12.5px"><tr style="color:var(--muted);font-size:11px"><th style="text-align:left;padding:6px 0">line</th><th style="text-align:left">material_code</th><th style="text-align:left">qty</th><th style="text-align:left">uom</th><th style="text-align:left">new?</th><th style="text-align:left">conf</th></tr>${pr.lines.map(l=>`<tr style="border-top:1px solid var(--line-2)"><td style="padding:7px 0">${l.line_no}</td><td class="mono">${l.material.material_code}</td><td class="mono">${l.qty}</td><td>${l.material.base_uom||"NOS"}</td><td>${l.status==="new"?"yes":"no"}</td><td>${l.status==="new"?"—":Math.round(l.score*100)+"%"}</td></tr>`).join("")}</table>`;
+  const foot=pr.approved?`<span class="vend" style="font-size:12.5px;color:var(--good)">Saved to database.</span><button class="mprimary" onclick="document.getElementById('modalRoot').innerHTML=''">Close</button>`:`<span class="vend" style="font-size:12.5px;color:var(--muted)">${pending?"Clear flagged lines first.":"Ready to approve."}</span><button class="mprimary" id="pa" ${pending?"disabled":""}>Approve requisition</button>`;
   shell("Requisition detail",pr.prNo,body,foot);
   const b=root.querySelector("#pa");if(b&&!pending)b.onclick=async()=>{closeModal();await approvePR(pr);};
 }
-loadParts();
+
+/* boot */
+async function boot(){
+  renderLogin();
+  try{MATERIALS=await sbGet("material?select=*");connected=true;setStatus("on",`Connected · ${MATERIALS.length} parts loaded`);
+    try{const p=await sbGet("purchase_requisition?select=pr_number&order=pr_number.desc&limit=1");if(p.length){const n=parseInt(p[0].pr_number.split("-").pop(),10);if(!isNaN(n))prBase=Math.max(prBase,n);}}catch(e){}
+  }catch(e){setStatus("err","Couldn't reach the database — host this file, then open the link");}
+}
+boot();
 </script>
 </body>
 </html>
