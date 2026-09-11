@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Parts Desk — Order to Requisition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#E9ECEF; --surface:#FFFFFF; --surface-2:#F4F6F8;
+    --ink:#14171B; --ink-2:#3D454E; --muted:#79828C;
+    --line:#D6DBE0; --line-2:#E6EAEE;
+    --steel:#274B6D; --steel-700:#1C3A55; --steel-050:#EAF0F6;
+    --good:#1C7A45; --good-bg:#E7F3EC;
+    --warn:#9A5B00; --warn-bg:#FBEFDD;
+    --amber:#D9A100;
+    --shadow:0 1px 2px rgba(20,23,27,.06), 0 8px 24px rgba(20,23,27,.06);
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:"IBM Plex Sans",system-ui,sans-serif;
+    background:var(--paper); color:var(--ink);
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+  }
+  code,.mono{font-family:"IBM Plex Mono",monospace}
+  .wrap{max-width:1120px;margin:0 auto;padding:28px 22px 80px}
+
+  /* header */
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+  .brand{display:flex;align-items:baseline;gap:12px}
+  .brand h1{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0}
+  .brand .sub{color:var(--muted);font-size:13.5px}
+  .status{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);
+    background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 13px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+  .dot.on{background:var(--good)} .dot.err{background:#B23B3B}
+
+  /* layout */
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:20px;align-items:start}
+  @media (max-width:880px){.grid{grid-template-columns:1fr}}
+
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .panel .hd{padding:16px 18px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .panel .hd h2{font-size:15px;margin:0;font-weight:600}
+  .panel .hd .hint{color:var(--muted);font-size:12.5px}
+  .panel .bd{padding:16px 18px}
+
+  label.f{display:block;font-size:12.5px;color:var(--ink-2);margin:0 0 5px;font-weight:500}
+  input,select{font-family:inherit;font-size:14px;color:var(--ink);background:var(--surface);
+    border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
+  input:focus,select:focus{outline:2px solid var(--steel);outline-offset:0;border-color:var(--steel)}
+
+  .lines{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+  .line{display:grid;grid-template-columns:1fr 68px 92px 30px;gap:8px;align-items:end}
+  .line .rm{border:1px solid var(--line);background:var(--surface-2);color:var(--muted);border-radius:8px;
+    height:38px;cursor:pointer;font-size:16px;line-height:1}
+  .line .rm:hover{color:#B23B3B;border-color:#e3b4b4}
+  .addline{margin-top:12px;background:none;border:1px dashed var(--line);color:var(--steel);
+    border-radius:8px;padding:9px;width:100%;cursor:pointer;font-size:13.5px;font-weight:500}
+  .addline:hover{background:var(--steel-050);border-color:var(--steel)}
+
+  .go{margin-top:16px;width:100%;background:var(--steel);color:#fff;border:0;border-radius:9px;
+    padding:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+  .go:hover{background:var(--steel-700)} .go:disabled{opacity:.5;cursor:default}
+
+  /* results */
+  .empty{color:var(--muted);font-size:14px;padding:26px 4px;text-align:center}
+  .res{display:flex;flex-direction:column;gap:12px}
+
+  .rline{border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .rline.newmat{border-style:dashed;border-color:var(--steel)}
+  .rline .row{display:flex;align-items:center;gap:12px;padding:11px 13px}
+  .rline .q{flex:1;min-width:0}
+  .rline .qtext{font-size:14px}
+  .rline .qmeta{font-size:12px;color:var(--muted);margin-top:1px}
+  .rline .qmeta .mono{color:var(--ink-2)}
+
+  .badge{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .badge.match{background:var(--good-bg);color:var(--good)}
+  .badge.review{background:var(--warn-bg);color:var(--warn)}
+  .badge.new{background:var(--steel-050);color:var(--steel)}
+
+  .meter{height:6px;background:var(--line-2);border-radius:99px;overflow:hidden;width:96px;flex:none}
+  .meter i{display:block;height:100%;border-radius:99px}
+  .conf{font-size:12px;color:var(--ink-2);width:34px;text-align:right;flex:none}
+  .rcode{font-size:12.5px;color:var(--ink-2);padding:0 13px 11px 13px}
+  .rcode .mono{color:var(--ink);font-weight:500}
+  .cands{border-top:1px solid var(--line-2);background:var(--surface-2);padding:8px 13px;font-size:12px;color:var(--muted)}
+  .cands span{color:var(--ink-2)}
+
+  /* PR cards */
+  .prs{margin-top:22px;display:flex;flex-direction:column;gap:14px}
+  .prs h2{font-size:15px;margin:0 0 2px;font-weight:600}
+  .prs .lead{color:var(--muted);font-size:13px;margin:0 0 6px}
+  .pr{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .pr .phd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line-2)}
+  .pr .pnum{font-size:14px;font-weight:600}
+  .pr .pnum .mono{color:var(--steel)}
+  .pr .pmeta{font-size:12.5px;color:var(--muted);margin-top:1px}
+  .pr table{width:100%;border-collapse:collapse;font-size:13px}
+  .pr td,.pr th{text-align:left;padding:9px 16px;border-bottom:1px solid var(--line-2)}
+  .pr th{font-size:11.5px;color:var(--muted);font-weight:500}
+  .pr tr:last-child td{border-bottom:0}
+  .pr .pfoot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px}
+  .pr .vend{font-size:12.5px;color:var(--muted)}
+  .approve{background:var(--surface);border:1px solid var(--steel);color:var(--steel);border-radius:8px;
+    padding:9px 16px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}
+  .approve:hover{background:var(--steel);color:#fff}
+  .pr.approved{border-color:var(--good)}
+  .pr.approved .phd{background:var(--good-bg)}
+  .approved-tag{display:inline-flex;align-items:center;gap:7px;color:var(--good);font-size:13.5px;font-weight:600}
+  .flag{font-size:11px;color:var(--steel);border:1px solid var(--steel);border-radius:5px;padding:1px 6px;margin-left:8px}
+
+  .foot{margin-top:34px;color:var(--muted);font-size:12px;text-align:center}
+  @media (prefers-reduced-motion:no-preference){
+    .rline,.pr{animation:in .28s ease both}
+    @keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Parts Desk</h1>
+      <span class="sub">Customer order → purchase requisition</span>
+    </div>
+    <div class="status" id="status"><span class="dot" id="dot"></span><span id="statusText">Connecting to your parts database…</span></div>
+  </header>
+
+  <div class="grid">
+    <!-- ORDER INTAKE -->
+    <section class="panel">
+      <div class="hd"><h2>New customer order</h2><span class="hint">what the customer asked for</span></div>
+      <div class="bd">
+        <label class="f" for="cust">Customer</label>
+        <input id="cust" value="Acme Power Services" />
+        <div style="height:14px"></div>
+        <label class="f">Order lines — type it the way a customer would</label>
+        <div class="lines" id="lines"></div>
+        <button class="addline" id="addLine">+ Add line</button>
+        <button class="go" id="go" disabled>Generate requisition</button>
+      </div>
+    </section>
+
+    <!-- RESOLUTION -->
+    <section class="panel">
+      <div class="hd"><h2>What we matched</h2><span class="hint">customer words → your part codes</span></div>
+      <div class="bd">
+        <div id="res" class="empty">Add an order on the left and press <b>Generate requisition</b>. Each line gets matched to a stocked part — or flagged as a new part to create.</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- PURCHASE REQUISITIONS -->
+  <div class="prs" id="prs"></div>
+
+  <p class="foot">Reading live from your parts database. Matches and requisitions are generated here in your browser.</p>
+</div>
+
+<script>
+const SUPABASE_URL = "https://niaykltphhpuehovoltz.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Md_KzdxxmhYnZFs9CHXEnw_cpnkfATw";
+
+const INDIAN_STATES = [
+  ["MH","Maharashtra"],["KA","Karnataka"],["TN","Tamil Nadu"],["GJ","Gujarat"],
+  ["DL","Delhi"],["UP","Uttar Pradesh"],["WB","West Bengal"],["RJ","Rajasthan"],["TS","Telangana"]
+];
+
+// example order that tells the whole story: 3 clean matches + 1 unknown part
+const SEED_LINES = [
+  {desc:"oil filter for c15", qty:4, state:"MH"},
+  {desc:"12 volt battery",    qty:2, state:"MH"},
+  {desc:"radiator 3516 genset",qty:1, state:"KA"},
+  {desc:"hand grinder XYZ-900",qty:1, state:"KA"},
+];
+
+let MATERIALS = [];
+
+/* ---------- load parts from Supabase ---------- */
+async function loadParts(){
+  try{
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/material?select=*`,{
+      headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}` }
+    });
+    if(!r.ok) throw new Error(r.status+" "+r.statusText);
+    MATERIALS = await r.json();
+    setStatus("on", `Connected · ${MATERIALS.length} parts loaded`);
+    document.getElementById("go").disabled = false;
+  }catch(e){
+    setStatus("err", "Couldn't reach the database — open this file in Chrome, or host it");
+    console.error(e);
+  }
+}
+function setStatus(kind,text){
+  document.getElementById("dot").className = "dot "+(kind==="on"?"on":kind==="err"?"err":"");
+  document.getElementById("statusText").textContent = text;
+}
+
+/* ---------- matching (trigram + token + model awareness) ---------- */
+function norm(s){ return (s||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim().replace(/\s+/g," "); }
+function trigrams(s){
+  const words = norm(s).split(" ").filter(Boolean);
+  const set = new Set();
+  for(const w of words){ const p = "  "+w+" "; for(let i=0;i<p.length-2;i++) set.add(p.slice(i,i+3)); }
+  return set;
+}
+function jaccard(a,b){ let inter=0; for(const x of a) if(b.has(x)) inter++; const uni=a.size+b.size-inter; return uni?inter/uni:0; }
+function tokens(s){ return new Set(norm(s).split(" ").filter(Boolean)); }
+function tokenOverlap(a,b){ let inter=0; for(const x of a) if(b.has(x)) inter++; return a.size?inter/a.size:0; }
+
+function modelsOf(mat){
+  const a = mat.match_attributes||{}; const vals=[];
+  for(const k of ["engine_model","genset_model","alternator_model"]) if(a[k]) vals.push(a[k]);
+  return vals.map(norm).flatMap(v=>v.split(" ")).filter(Boolean);
+}
+function score(query, mat){
+  const q = norm(query);
+  const tri = jaccard(trigrams(q), trigrams(mat.normalized_description||mat.short_description));
+  const tok = tokenOverlap(tokens(q), tokens((mat.normalized_description||"")+" "+(mat.short_description||"")));
+  let s = 0.55*tri + 0.45*tok;
+  const qtok = tokens(q);
+  const models = modelsOf(mat);
+  if(models.length && models.some(m=>qtok.has(m))) s += 0.22;   // model-aware boost
+  return Math.min(1, s);
+}
+function resolve(query){
+  const ranked = MATERIALS.map(m=>({m, s:score(query,m)})).sort((a,b)=>b.s-a.s);
+  const best = ranked[0] || {s:0};
+  const HIGH=0.42, MED=0.26;
+  let status = best.s>=HIGH ? "match" : best.s>=MED ? "review" : "new";
+  return { status, best:best.m, bestScore:best.s, candidates:ranked.slice(0,3) };
+}
+
+/* ---------- order form ---------- */
+const linesEl = document.getElementById("lines");
+function stateOptions(sel){ return INDIAN_STATES.map(([c,n])=>`<option value="${c}" ${c===sel?"selected":""}>${c} — ${n}</option>`).join(""); }
+function lineRow(l={desc:"",qty:1,state:"MH"}){
+  const div=document.createElement("div"); div.className="line";
+  div.innerHTML=`
+    <div><input class="d" placeholder="e.g. fuel filter for c15" value="${l.desc}"></div>
+    <div><input class="q" type="number" min="1" value="${l.qty}"></div>
+    <div><select class="s">${stateOptions(l.state)}</select></div>
+    <button class="rm" title="Remove line">×</button>`;
+  div.querySelector(".rm").onclick=()=>div.remove();
+  return div;
+}
+SEED_LINES.forEach(l=>linesEl.appendChild(lineRow(l)));
+document.getElementById("addLine").onclick=()=>linesEl.appendChild(lineRow());
+
+function readOrder(){
+  const cust=document.getElementById("cust").value.trim()||"Customer";
+  const lines=[...linesEl.querySelectorAll(".line")].map((row,i)=>({
+    line_no:i+1,
+    desc:row.querySelector(".d").value.trim(),
+    qty:+row.querySelector(".q").value||1,
+    state:row.querySelector(".s").value
+  })).filter(l=>l.desc);
+  return {cust, lines};
+}
+
+/* ---------- generate ---------- */
+let prSeq = 4530;
+document.getElementById("go").onclick=()=>{
+  const order=readOrder();
+  if(!order.lines.length){ return; }
+  const resolved=order.lines.map(l=>({...l, ...resolve(l.desc)}));
+  renderResolution(resolved);
+  renderPRs(order, resolved);
+  document.getElementById("prs").scrollIntoView({behavior:"smooth",block:"start"});
+};
+
+function meter(s){
+  const pct=Math.round(s*100);
+  const col = s>=0.42 ? "var(--good)" : s>=0.26 ? "var(--amber)" : "var(--steel)";
+  return `<div class="meter"><i style="width:${Math.max(6,pct)}%;background:${col}"></i></div><div class="conf">${pct}%</div>`;
+}
+function badge(st){
+  return st==="match"?`<span class="badge match">Matched</span>`
+       : st==="review"?`<span class="badge review">Check this</span>`
+       : `<span class="badge new">New part</span>`;
+}
+function renderResolution(rows){
+  const el=document.getElementById("res"); el.className="res"; el.innerHTML="";
+  rows.forEach(r=>{
+    const div=document.createElement("div");
+    div.className="rline"+(r.status==="new"?" newmat":"");
+    const codeLine = r.status==="new"
+      ? `<div class="rcode">No stocked part fits — a new code will be created and sent for approval.</div>`
+      : `<div class="rcode">→ <span class="mono">${r.best.material_code}</span> · ${r.best.short_description}</div>`;
+    const cand = (r.status!=="new" && r.candidates.length>1)
+      ? `<div class="cands">also considered: ${r.candidates.slice(1).map(c=>`<span>${c.m.short_description}</span> (${Math.round(c.s*100)}%)`).join(", ")}</div>`
+      : "";
+    div.innerHTML=`
+      <div class="row">
+        <div class="q">
+          <div class="qtext">${r.desc}</div>
+          <div class="qmeta">qty <span class="mono">${r.qty}</span> · ship to <span class="mono">${r.state}</span></div>
+        </div>
+        ${meter(r.bestScore)}
+        ${badge(r.status)}
+      </div>
+      ${codeLine}${cand}`;
+    el.appendChild(div);
+  });
+}
+
+/* ---------- purchase requisitions, split by state ---------- */
+function renderPRs(order, resolved){
+  const wrap=document.getElementById("prs"); wrap.innerHTML="";
+  const states=[...new Set(resolved.map(r=>r.state))];
+  const head=document.createElement("div");
+  head.innerHTML=`<h2>Draft requisitions</h2><p class="lead">One requisition per delivery state — ${states.length} in this order. Review, then approve.</p>`;
+  wrap.appendChild(head);
+
+  states.forEach(st=>{
+    const lines=resolved.filter(r=>r.state===st);
+    const stName=(INDIAN_STATES.find(s=>s[0]===st)||[st,st])[1];
+    const prNo="PR-2026-"+String(++prSeq).padStart(6,"0");
+    const pr=document.createElement("div"); pr.className="pr";
+    pr.innerHTML=`
+      <div class="phd">
+        <div>
+          <div class="pnum">Requisition <span class="mono">${prNo}</span></div>
+          <div class="pmeta">${order.cust} · deliver to ${stName} (${st}) · ${lines.length} line${lines.length>1?"s":""}</div>
+        </div>
+        <div class="act"></div>
+      </div>
+      <table>
+        <tr><th>Part</th><th>Code</th><th>Qty</th><th>Status</th></tr>
+        ${lines.map(l=>`
+          <tr>
+            <td>${l.status==="new" ? l.desc : l.best.short_description}</td>
+            <td class="mono">${l.status==="new" ? "new part" : l.best.material_code}</td>
+            <td class="mono">${l.qty}</td>
+            <td>${l.status==="new"
+                  ? '<span class="badge new">provisional</span><span class="flag">needs approval</span>'
+                  : badge(l.status)}</td>
+          </tr>`).join("")}
+      </table>
+      <div class="pfoot">
+        <span class="vend">Preferred vendor: none yet — set on approval</span>
+        <button class="approve">Approve requisition</button>
+      </div>`;
+    const btn=pr.querySelector(".approve");
+    btn.onclick=()=>{
+      pr.classList.add("approved");
+      const hasNew=lines.some(l=>l.status==="new");
+      pr.querySelector(".act").innerHTML=`<span class="approved-tag">✓ Approved</span>`;
+      pr.querySelector(".pfoot").innerHTML=
+        `<span class="vend">${hasNew?"New part codes activated · ":""}Sent onward for purchasing.</span>
+         <span class="approved-tag">✓ Approved</span>`;
+    };
+    wrap.appendChild(pr);
+  });
+}
+
+loadParts();
+</script>
+</body>
+</html>
