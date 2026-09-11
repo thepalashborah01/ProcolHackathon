@@ -27,7 +27,7 @@
   input,select{font-family:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
   input:focus,select:focus{outline:2px solid var(--steel);border-color:var(--steel)}
   .lines{display:flex;flex-direction:column;gap:10px;margin-top:4px}
-  .line{display:grid;grid-template-columns:1fr 68px 92px 30px;gap:8px;align-items:end}
+  .line{display:grid;grid-template-columns:1fr 54px 74px 90px 28px;gap:7px;align-items:end}
   .line .rm{border:1px solid var(--line);background:var(--surface-2);color:var(--muted);border-radius:8px;height:38px;cursor:pointer;font-size:16px}
   .line .rm:hover{color:#B23B3B;border-color:#e3b4b4}
   .addline{margin-top:12px;background:none;border:1px dashed var(--line);color:var(--steel);border-radius:8px;padding:9px;width:100%;cursor:pointer;font-size:13.5px;font-weight:500}
@@ -154,9 +154,13 @@ function renderCustomer(){
     <div style="max-width:640px;margin:0 auto"><section class="panel">
       <div class="hd"><h2>New parts order</h2><span class="hint">describe what you need</span></div>
       <div class="bd">
-        <label class="f">Company</label><input id="cust" value="${session.name}">
+        <div style="display:grid;grid-template-columns:1fr 180px;gap:12px">
+          <div><label class="f">Company</label><input id="cust" value="${session.name}"></div>
+          <div><label class="f">Required by</label><input id="reqby" type="date" value="${new Date(Date.now()+7*864e5).toISOString().slice(0,10)}"></div>
+        </div>
         <div style="height:14px"></div>
         <label class="f">Order lines — type it however you like</label>
+        <div class="line" style="margin:2px 0 6px;font-size:11px;color:var(--muted)"><div>Item</div><div>Qty</div><div>Unit</div><div>Deliver to</div><div></div></div>
         <div class="lines" id="lines"></div>
         <button class="addline" id="addLine">+ Add line</button>
         <button class="go" id="send">Send order to procurement</button>
@@ -167,15 +171,18 @@ function renderCustomer(){
   document.getElementById("send").onclick=sendOrder;
 }
 function stOpts(sel){return INDIAN_STATES.map(([c,n])=>`<option value="${c}" ${c===sel?"selected":""}>${c} — ${n}</option>`).join("");}
-function lineRow(l={desc:"",qty:1,state:"MH"}){const d=document.createElement("div");d.className="line";d.innerHTML=`<div><input class="d" placeholder="e.g. fuel filter for c15" value="${l.desc}"></div><div><input class="q" type="number" min="1" value="${l.qty}"></div><div><select class="s">${stOpts(l.state)}</select></div><button class="rm">×</button>`;d.querySelector(".rm").onclick=()=>d.remove();return d;}
+const UOMS=["NOS","SET","PAIR","L","KG","M"];
+function uomOpts(sel){return UOMS.map(u=>`<option ${u===sel?"selected":""}>${u}</option>`).join("");}
+function lineRow(l={desc:"",qty:1,uom:"NOS",state:"MH"}){const d=document.createElement("div");d.className="line";d.innerHTML=`<div><input class="d" placeholder="e.g. fuel filter for c15" value="${l.desc}"></div><div><input class="q" type="number" min="1" value="${l.qty}"></div><div><select class="u">${uomOpts(l.uom||"NOS")}</select></div><div><select class="s">${stOpts(l.state)}</select></div><button class="rm">×</button>`;d.querySelector(".rm").onclick=()=>d.remove();return d;}
 async function sendOrder(){
   const cust=document.getElementById("cust").value.trim()||"Customer";
-  const lines=[...document.querySelectorAll("#lines .line")].map((r,i)=>({line_no:i+1,item_description:r.querySelector(".d").value.trim(),quantity:+r.querySelector(".q").value||1,uom:"NOS",ship_to_state:r.querySelector(".s").value})).filter(l=>l.item_description);
+  const reqby=document.getElementById("reqby").value||null;
+  const lines=[...document.querySelectorAll("#lines .line")].filter(r=>r.querySelector(".d")).map((r,i)=>({line_no:i+1,item_description:r.querySelector(".d").value.trim(),quantity:+r.querySelector(".q").value||1,uom:r.querySelector(".u").value,required_by_date:reqby,ship_to_state:r.querySelector(".s").value})).filter(l=>l.item_description);
   if(!lines.length){toast("Add at least one line",true);return;}
   const btn=document.getElementById("send");btn.disabled=true;btn.textContent="Sending…";
   const soRef="SO-2026-"+String(Date.now()).slice(-6);
   try{
-    const head=await sbPost("sales_order",{so_reference:soRef,customer_name:cust,order_date:today(),status:"received",source:"api"},true);
+    const head=await sbPost("sales_order",{so_reference:soRef,customer_name:cust,order_date:today(),required_by_date:reqby,status:"received",source:"api"},true);
     const soId=head[0].so_id;
     await sbPost("sales_order_line",lines.map(l=>({so_id:soId,...l})),false);
     app.innerHTML=`<div class="wrap"><div class="success"><div class="ok">✓</div><h2 style="margin:0 0 6px">Order sent</h2><p style="color:var(--muted);margin:0 0 4px">Your order <b class="mono">${soRef}</b> is now with procurement.</p><p style="color:var(--muted);font-size:13px">They'll match each line to a part and raise the requisition.</p><div style="margin-top:18px;display:flex;gap:10px;justify-content:center"><button class="btn2" onclick="renderCustomer()">Send another order</button><button class="btn2" onclick="logout()">Log out</button></div></div></div>`;
@@ -205,7 +212,7 @@ async function renderAdmin(){
 /* ---------------- ADMIN: order workspace ---------------- */
 function openOrder(o){
   currentOrder=o;
-  const lines=(o.sales_order_line||[]).sort((a,b)=>a.line_no-b.line_no).map(l=>({line_no:l.line_no,desc:l.item_description,qty:+l.quantity,state:l.ship_to_state||"MH"}));
+  const lines=(o.sales_order_line||[]).sort((a,b)=>a.line_no-b.line_no).map(l=>({line_no:l.line_no,desc:l.item_description,qty:+l.quantity,uom:l.uom||"NOS",state:l.ship_to_state||"MH",required_by_date:l.required_by_date}));
   const soRef=o.so_reference;
   const resolved=lines.map(l=>{const r=resolve(l.desc);const material=r.status==="new"?makeProvisional(l.desc):r.best;return{...l,status:r.status,score:r.bestScore,candidates:r.candidates,material,confirmed:false};});
   const states=[...new Set(resolved.map(r=>r.state))];
@@ -214,12 +221,31 @@ function openOrder(o){
   ST={resolved,prs};
   app.innerHTML=`<div class="wrap">${header("Parts Desk — Admin","order workspace")}
     <button class="lnk" onclick="renderAdmin()">← Back to orders</button>
-    <div class="panel" style="margin:10px 0 18px"><div class="bd" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <div><div style="font-weight:600"><span class="mono">${o.so_reference}</span> · ${o.customer_name}</div><div style="font-size:12.5px;color:var(--muted)">${resolved.length} line(s) · placed ${o.order_date||""}</div></div></div></div>
+    <div class="panel" style="margin:10px 0 18px"><div class="bd" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div><div style="font-weight:600"><span class="mono">${o.so_reference}</span> · ${o.customer_name}</div><div style="font-size:12.5px;color:var(--muted)">${resolved.length} line(s) · placed ${o.order_date||""}${o.required_by_date?" · required by "+o.required_by_date:""}</div></div>
+      <button class="btn2" id="soDetail">View order details</button></div></div>
     <section class="panel"><div class="hd"><h2>What we matched</h2><span class="hint">tap any line for details</span></div><div class="bd"><div id="res" class="res"></div></div></section>
     <div class="prs" id="prs"></div></div>`;
   renderAll();
+  document.getElementById("soDetail").onclick=()=>openSO(o);
   sbPatch("sales_order","so_id=eq."+o.so_id,{status:"pr_drafted"}).catch(()=>{});
+}
+function openSO(o){
+  const ls=(o.sales_order_line||[]).slice().sort((a,b)=>a.line_no-b.line_no);
+  const body=sect("HEADER")
+    +drow("so_id",`<span class="mono">${fmt(o.so_id)}</span>`)
+    +drow("so_reference",`<span class="mono" style="font-weight:600">${fmt(o.so_reference)}</span>`)
+    +drow("customer_name",fmt(o.customer_name))
+    +drow("customer_code",fmt(o.customer_code))
+    +drow("order_date",fmt(o.order_date))
+    +drow("required_by_date",fmt(o.required_by_date))
+    +drow("plant",fmt(o.plant))
+    +drow("status",`<span class="badge ${o.status==="pr_drafted"?"active":"review"}">${fmt(o.status)}</span>`)
+    +drow("source",fmt(o.source))
+    +drow("created_at",fmt(o.created_at))
+    +sect("LINES ("+ls.length+")")
+    +`<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="color:var(--muted);font-size:11px"><th style="text-align:left;padding:6px 0">#</th><th style="text-align:left">item_description</th><th style="text-align:left">qty</th><th style="text-align:left">uom</th><th style="text-align:left">state</th><th style="text-align:left">req_by</th></tr>${ls.map(l=>`<tr style="border-top:1px solid var(--line-2)"><td style="padding:7px 0">${l.line_no}</td><td>${l.item_description}</td><td class="mono">${l.quantity}</td><td>${fmt(l.uom)}</td><td class="mono">${fmt(l.ship_to_state)}</td><td>${fmt(l.required_by_date)}</td></tr>`).join("")}</table>`;
+  shell("Sales order detail",o.so_reference,body,`<span class="vend" style="font-size:12.5px;color:var(--muted)">Full record as received from the customer.</span><button class="mprimary" onclick="document.getElementById('modalRoot').innerHTML=''">Close</button>`);
 }
 
 /* shared render */
