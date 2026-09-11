@@ -110,6 +110,9 @@ const CLASSIFY=[[/grinder|drill|power tool|cutter|saw/,"TLS","PWR","power tool"]
 function classify(d){d=(d||"").toLowerCase();for(const[re,c,s,f]of CLASSIFY)if(re.test(d))return{category:c,subcategory:s,family:f};return{category:"SPR",subcategory:"MSC",family:"unclassified"};}
 
 let MATERIALS=[], ST={resolved:[],prs:[]}, prBase=4530, session=null, currentOrder=null, connected=false;
+let INV={}, MACHINES=[];
+const NEED={STL:500,BAR:150,CST:800,TUB:25,NFE:80,RUB:100};
+function needFor(sub){return NEED[sub]||100;}
 const app=document.getElementById("app"), root=document.getElementById("modalRoot");
 function toast(m,err){const t=document.createElement("div");t.className="toast"+(err?" err":"");t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),err?5200:3000);}
 function fmt(v){return (v===null||v===undefined||v==="")?"—":v;}
@@ -148,45 +151,65 @@ function header(title,sub){return `<header class="top"><div class="brand"><h1>${
 function logout(){session=null;currentOrder=null;ST={resolved:[],prs:[]};renderLogin();}
 
 /* ---------------- CUSTOMER ---------------- */
+let ORDER_MODE="parts";
 function renderCustomer(){
   root.innerHTML="";
-  app.innerHTML=`<div class="wrap">${header("Parts Desk","place a parts order")}
+  app.innerHTML=`<div class="wrap">${header("Parts Desk","place an order")}
     <div style="max-width:640px;margin:0 auto"><section class="panel">
-      <div class="hd"><h2>New parts order</h2><span class="hint">describe what you need</span></div>
+      <div class="hd"><h2>New order</h2><span class="hint">what do you need?</span></div>
       <div class="bd">
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <button class="btn2 mode" data-m="parts" style="flex:1">Parts & materials</button>
+          <button class="btn2 mode" data-m="machine" style="flex:1">A machine / equipment</button>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 180px;gap:12px">
           <div><label class="f">Company</label><input id="cust" value="${session.name}"></div>
           <div><label class="f">Required by</label><input id="reqby" type="date" value="${new Date(Date.now()+7*864e5).toISOString().slice(0,10)}"></div>
         </div>
         <div style="height:14px"></div>
-        <label class="f">Order lines — type it however you like</label>
-        <div class="line" style="margin:2px 0 6px;font-size:11px;color:var(--muted)"><div>Item</div><div>Qty</div><div>Unit</div><div>Deliver to</div><div></div></div>
+        <label class="f" id="linesLabel"></label>
+        <div class="line" id="colHdr" style="margin:2px 0 6px;font-size:11px;color:var(--muted)"></div>
+        <datalist id="machineList">${MACHINES.map(m=>`<option value="${m}">`).join("")}</datalist>
         <div class="lines" id="lines"></div>
         <button class="addline" id="addLine">+ Add line</button>
         <button class="go" id="send">Send order to procurement</button>
       </div></section></div></div>`;
-  const linesEl=document.getElementById("lines");
-  SEED_LINES.forEach(l=>linesEl.appendChild(lineRow(l)));
-  document.getElementById("addLine").onclick=()=>linesEl.appendChild(lineRow());
+  const setMode=(m)=>{
+    ORDER_MODE=m;
+    document.querySelectorAll(".mode").forEach(b=>{const on=b.dataset.m===m;b.style.background=on?"var(--steel)":"var(--surface)";b.style.color=on?"#fff":"var(--steel)";});
+    document.getElementById("linesLabel").textContent = m==="machine"?"Machines — name or model (e.g. D6 Dozer, 320 Excavator)":"Order lines — type it however you like";
+    document.getElementById("colHdr").innerHTML = m==="machine"?"<div>Machine / model</div><div>Qty</div><div>Unit</div><div>Deliver to</div><div></div>":"<div>Item</div><div>Qty</div><div>Unit</div><div>Deliver to</div><div></div>";
+    const el=document.getElementById("lines");el.innerHTML="";
+    (m==="machine"?[{desc:"D6 Dozer",qty:1,uom:"UNIT",state:"MH"}]:SEED_LINES).forEach(l=>el.appendChild(lineRow(l,m)));
+  };
+  document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+  document.getElementById("addLine").onclick=()=>document.getElementById("lines").appendChild(lineRow({},ORDER_MODE));
   document.getElementById("send").onclick=sendOrder;
+  setMode("parts");
 }
 function stOpts(sel){return INDIAN_STATES.map(([c,n])=>`<option value="${c}" ${c===sel?"selected":""}>${c} — ${n}</option>`).join("");}
 const UOMS=["NOS","SET","PAIR","L","KG","M"];
 function uomOpts(sel){return UOMS.map(u=>`<option ${u===sel?"selected":""}>${u}</option>`).join("");}
-function lineRow(l={desc:"",qty:1,uom:"NOS",state:"MH"}){const d=document.createElement("div");d.className="line";d.innerHTML=`<div><input class="d" placeholder="e.g. fuel filter for c15" value="${l.desc}"></div><div><input class="q" type="number" min="1" value="${l.qty}"></div><div><select class="u">${uomOpts(l.uom||"NOS")}</select></div><div><select class="s">${stOpts(l.state)}</select></div><button class="rm">×</button>`;d.querySelector(".rm").onclick=()=>d.remove();return d;}
+function lineRow(l={desc:"",qty:1,uom:"NOS",state:"MH"},mode="parts"){const d=document.createElement("div");d.className="line";
+  const ph=mode==="machine"?"e.g. D6 Dozer":"e.g. fuel filter for c15";
+  const dl=mode==="machine"?' list="machineList"':"";
+  const unit=mode==="machine"?`<input class="u" value="UNIT" readonly style="text-align:center;color:var(--muted)">`:`<select class="u">${uomOpts(l.uom||"NOS")}</select>`;
+  d.innerHTML=`<div><input class="d"${dl} placeholder="${ph}" value="${l.desc||""}"></div><div><input class="q" type="number" min="1" value="${l.qty||1}"></div><div>${unit}</div><div><select class="s">${stOpts(l.state||"MH")}</select></div><button class="rm">×</button>`;
+  d.querySelector(".rm").onclick=()=>d.remove();return d;}
 async function sendOrder(){
   const cust=document.getElementById("cust").value.trim()||"Customer";
   const reqby=document.getElementById("reqby").value||null;
-  const lines=[...document.querySelectorAll("#lines .line")].filter(r=>r.querySelector(".d")).map((r,i)=>({line_no:i+1,item_description:r.querySelector(".d").value.trim(),quantity:+r.querySelector(".q").value||1,uom:r.querySelector(".u").value,required_by_date:reqby,ship_to_state:r.querySelector(".s").value})).filter(l=>l.item_description);
+  const lines=[...document.querySelectorAll("#lines .line")].filter(r=>r.querySelector(".d")).map((r,i)=>({line_no:i+1,item_description:r.querySelector(".d").value.trim(),quantity:+r.querySelector(".q").value||1,uom:(r.querySelector(".u").value||"NOS"),required_by_date:reqby,ship_to_state:r.querySelector(".s").value})).filter(l=>l.item_description);
   if(!lines.length){toast("Add at least one line",true);return;}
   const btn=document.getElementById("send");btn.disabled=true;btn.textContent="Sending…";
   const soRef="SO-2026-"+String(Date.now()).slice(-6);
   try{
-    const head=await sbPost("sales_order",{so_reference:soRef,customer_name:cust,order_date:today(),required_by_date:reqby,status:"received",source:"api"},true);
+    const head=await sbPost("sales_order",{so_reference:soRef,customer_name:cust,order_date:today(),required_by_date:reqby,status:"received",source:"api",order_type:ORDER_MODE},true);
     const soId=head[0].so_id;
     await sbPost("sales_order_line",lines.map(l=>({so_id:soId,...l})),false);
-    app.innerHTML=`<div class="wrap"><div class="success"><div class="ok">✓</div><h2 style="margin:0 0 6px">Order sent</h2><p style="color:var(--muted);margin:0 0 4px">Your order <b class="mono">${soRef}</b> is now with procurement.</p><p style="color:var(--muted);font-size:13px">They'll match each line to a part and raise the requisition.</p><div style="margin-top:18px;display:flex;gap:10px;justify-content:center"><button class="btn2" onclick="renderCustomer()">Send another order</button><button class="btn2" onclick="logout()">Log out</button></div></div></div>`;
-  }catch(e){btn.disabled=false;btn.textContent="Send order to procurement";toast("Couldn't send — run enable_customer_orders.sql ("+String(e.message).slice(0,50)+")",true);console.error(e);}
+    const msg=ORDER_MODE==="machine"?"Procurement will break each machine into its materials and raise the requisitions.":"They'll match each line to a part and raise the requisition.";
+    app.innerHTML=`<div class="wrap"><div class="success"><div class="ok">✓</div><h2 style="margin:0 0 6px">Order sent</h2><p style="color:var(--muted);margin:0 0 4px">Your order <b class="mono">${soRef}</b> is now with procurement.</p><p style="color:var(--muted);font-size:13px">${msg}</p><div style="margin-top:18px;display:flex;gap:10px;justify-content:center"><button class="btn2" onclick="renderCustomer()">Send another order</button><button class="btn2" onclick="logout()">Log out</button></div></div></div>`;
+  }catch(e){btn.disabled=false;btn.textContent="Send order to procurement";toast("Couldn't send — run enable_inventory.sql / enable_customer_orders.sql ("+String(e.message).slice(0,50)+")",true);console.error(e);}
 }
 
 /* ---------------- ADMIN: order list ---------------- */
@@ -202,8 +225,8 @@ async function renderAdmin(){
     el.innerHTML="";el.style.display="flex";el.style.flexDirection="column";el.style.gap="10px";
     orders.forEach(o=>{
       const div=document.createElement("div");div.className="ordercard";
-      div.innerHTML=`<div><div style="font-weight:600"><span class="mono">${o.so_reference}</span> · ${o.customer_name||"Customer"}</div><div class="oc-meta">${(o.sales_order_line||[]).length} line(s) · ${o.order_date||""} · <span class="badge ${o.status==="pr_drafted"?"active":"review"}">${o.status}</span></div></div><button class="btn2">Open</button>`;
-      div.querySelector("button").onclick=()=>openOrder(o);
+      div.innerHTML=`<div><div style="font-weight:600"><span class="mono">${o.so_reference}</span> · ${o.customer_name||"Customer"} ${o.order_type==="machine"?'<span class="badge new">machine</span>':'<span class="badge match">parts</span>'}</div><div class="oc-meta">${(o.sales_order_line||[]).length} line(s) · ${o.order_date||""} · <span class="badge ${o.status==="pr_drafted"?"active":"review"}">${o.status}</span></div></div><button class="btn2">Open</button>`;
+      div.querySelector("button").onclick=()=>(o.order_type==="machine"?openMachineOrder(o):openOrder(o));
       el.appendChild(div);
     });
   }catch(e){document.getElementById("orderList").innerHTML=`<div class="empty">Couldn't load orders — did you run enable_customer_orders.sql?</div>`;console.error(e);}
@@ -227,6 +250,55 @@ function openOrder(o){
     <section class="panel"><div class="hd"><h2>What we matched</h2><span class="hint">tap any line for details</span></div><div class="bd"><div id="res" class="res"></div></div></section>
     <div class="prs" id="prs"></div></div>`;
   renderAll();
+  document.getElementById("soDetail").onclick=()=>openSO(o);
+  sbPatch("sales_order","so_id=eq."+o.so_id,{status:"pr_drafted"}).catch(()=>{});
+}
+
+/* ---------------- ADMIN: MACHINE order (explode -> inventory -> shortfall PR) ---------------- */
+function openMachineOrder(o){
+  currentOrder=o;
+  const machineLines=(o.sales_order_line||[]).sort((a,b)=>a.line_no-b.line_no);
+  const breakdown=[];      // per machine, its materials with need/on_hand/shortfall
+  const resolved=[];       // shortfall lines that will feed the requisition
+  machineLines.forEach(ml=>{
+    const machine=matchMachine(ml.item_description);
+    const qty=+ml.quantity||1;
+    const state=ml.ship_to_state||"MH";
+    const mats=machine?materialsForMachine(machine):[];
+    const rows=mats.map(m=>{
+      const need=needFor(m.subcategory)*qty;
+      const onHand=INV[m.material_code]||0;
+      const shortfall=Math.max(0,need-onHand);
+      if(shortfall>0){
+        resolved.push({line_no:resolved.length+1,desc:m.short_description,qty:shortfall,uom:m.base_uom||"KG",state,status:"match",score:1,candidates:[{m,s:1}],material:m,confirmed:true});
+      }
+      return {m,need,onHand,shortfall};
+    });
+    breakdown.push({raw:ml.item_description,machine,qty,state,rows,matched:!!machine});
+  });
+  // requisitions from shortfall lines, split by state
+  const states=[...new Set(resolved.map(r=>r.state))];
+  let tmp=prBase;
+  const prs=states.map(st=>({prNo:"PR-2026-"+String(++tmp).padStart(6,"0"),tentative:true,cust:o.customer_name,soRef:o.so_reference,state:st,stName:(INDIAN_STATES.find(s=>s[0]===st)||[st,st])[1],lines:resolved.filter(r=>r.state===st),approved:false,pr_id:null}));
+  ST={resolved,prs};
+  app.innerHTML=`<div class="wrap">${header("Parts Desk — Admin","machine order workspace")}
+    <button class="lnk" onclick="renderAdmin()">← Back to orders</button>
+    <div class="panel" style="margin:10px 0 18px"><div class="bd" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div><div style="font-weight:600"><span class="mono">${o.so_reference}</span> · ${o.customer_name} <span class="badge new">machine order</span></div><div style="font-size:12.5px;color:var(--muted)">${machineLines.length} machine line(s) · placed ${o.order_date||""}</div></div>
+      <button class="btn2" id="soDetail">View order details</button></div></div>
+    <section class="panel"><div class="hd"><h2>Machine breakdown</h2><span class="hint">materials · stock · what we buy</span></div><div class="bd" id="bd"></div></section>
+    <div class="prs" id="prs" style="margin-top:18px"></div></div>`;
+  const bd=document.getElementById("bd");
+  breakdown.forEach(b=>{
+    const box=document.createElement("div");box.style.marginBottom="16px";
+    if(!b.matched){box.innerHTML=`<div style="font-weight:600;margin-bottom:4px">${b.raw}</div><div class="empty" style="padding:12px">Couldn't identify this machine in the catalogue — no BOM to explode.</div>`;bd.appendChild(box);return;}
+    box.innerHTML=`<div style="font-weight:600;margin-bottom:2px">${b.raw} → <span style="color:var(--steel)">${b.machine}</span> ×${b.qty}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">exploded to ${b.rows.length} material(s)</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px"><tr style="color:var(--muted);font-size:11px"><th style="text-align:left;padding:6px 0">Material</th><th style="text-align:left">Code</th><th style="text-align:right">Need</th><th style="text-align:right">In stock</th><th style="text-align:right">Buy</th><th style="text-align:left;padding-left:10px">Action</th></tr>
+      ${b.rows.map(r=>`<tr style="border-top:1px solid var(--line-2)"><td style="padding:8px 0">${r.m.short_description}</td><td class="mono">${r.m.material_code}</td><td style="text-align:right" class="mono">${r.need} ${r.m.base_uom}</td><td style="text-align:right" class="mono">${r.onHand}</td><td style="text-align:right" class="mono">${r.shortfall||"—"}</td><td style="padding-left:10px">${r.shortfall>0?'<span class="badge new">raise PR</span>':'<span class="badge active">in stock</span>'}</td></tr>`).join("")}</table>`;
+    bd.appendChild(box);
+  });
+  renderPRs();
   document.getElementById("soDetail").onclick=()=>openSO(o);
   sbPatch("sales_order","so_id=eq."+o.so_id,{status:"pr_drafted"}).catch(()=>{});
 }
@@ -385,9 +457,14 @@ function openPR(pr){
 async function boot(){
   renderLogin();
   try{MATERIALS=await sbGet("material?select=*");connected=true;setStatus("on",`Connected · ${MATERIALS.length} parts loaded`);
+    buildMachines();
+    try{INV={};(await sbGet("inventory?select=material_code,on_hand_qty")).forEach(r=>INV[r.material_code]=+r.on_hand_qty);}catch(e){}
     try{const p=await sbGet("purchase_requisition?select=pr_number&order=pr_number.desc&limit=1");if(p.length){const n=parseInt(p[0].pr_number.split("-").pop(),10);if(!isNaN(n))prBase=Math.max(prBase,n);}}catch(e){}
   }catch(e){setStatus("err","Couldn't reach the database — host this file, then open the link");}
 }
+function buildMachines(){const s=new Set();MATERIALS.forEach(m=>((m.match_attributes||{}).target_cat_products||[]).forEach(x=>s.add(x)));MACHINES=[...s].sort();}
+function matchMachine(q){const qt=tk(q);let best=null,bs=0;for(const name of MACHINES){const nt=tk(name);let hit=0;for(const t of nt)if(qt.has(t))hit++;const s=nt.size?hit/nt.size:0;if(s>bs){bs=s;best=name;}}return bs>=0.5?best:null;}
+function materialsForMachine(name){return MATERIALS.filter(m=>((m.match_attributes||{}).target_cat_products||[]).includes(name));}
 boot();
 </script>
 </body>
