@@ -131,9 +131,11 @@ function modelsOf(m){const a=m.match_attributes||{};const v=[];for(const k of["e
 function score(q,m){const tri=jac(trigrams(q),trigrams(m.normalized_description||m.short_description));const tok=ov(tk(q),tk((m.normalized_description||"")+" "+(m.short_description||"")));let s=0.55*tri+0.45*tok;const qt=tk(q),mo=modelsOf(m);if(mo.length&&mo.some(x=>qt.has(x)))s+=0.22;return Math.min(1,s);}
 function resolve(q){const r=MATERIALS.map(m=>({m,s:score(q,m)})).sort((a,b)=>b.s-a.s);const b=r[0]||{s:0};const st=b.s>=0.42?"match":b.s>=0.26?"review":"new";return{status:st,best:b.m,bestScore:b.s,candidates:r.slice(0,3)};}
 function nextSeq(cat,sub){const p=`${cat}-${sub}-`;let mx=0;for(const m of MATERIALS){if((m.material_code||"").startsWith(p)){const n=parseInt(m.material_code.slice(p.length),10);if(n>mx)mx=n;}}return String(mx+1).padStart(5,"0");}
-function makeProvisional(desc,subOverride){
+function uomForSub(sub){return (sub==="TUB"||sub==="RUB")?"MTR":(["STL","BAR","CST","NFE"].includes(sub)?"KG":"NOS");}
+function makeProvisional(desc,subOverride,longDesc){
   const RM=["STL","BAR","CST","TUB","NFE","RUB"];
-  const c=(subOverride&&RM.includes(subOverride))?{category:"RM",subcategory:subOverride,family:"raw material"}:classify(desc);return{material_code:`${c.category}-${c.subcategory}-${nextSeq(c.category,c.subcategory)}`,status:"provisional",short_description:desc,long_description:desc,normalized_description:norm(desc),category:c.category,subcategory:c.subcategory,material_group:c.family,base_uom:"NOS",hsn_code:"",gst_rate:18,tax_classification:"taxable",match_attributes:{part_family:c.family,source_text:desc},source:"so_auto",external_refs:{}};}
+  const c=(subOverride&&RM.includes(subOverride))?{category:"RM",subcategory:subOverride,family:"raw material"}:classify(desc);
+  return{material_code:`${c.category}-${c.subcategory}-${nextSeq(c.category,c.subcategory)}`,status:"provisional",short_description:desc,long_description:longDesc||desc,normalized_description:norm(desc),category:c.category,subcategory:c.subcategory,material_group:c.family,base_uom:uomForSub(c.subcategory),hsn_code:"",gst_rate:18,tax_classification:"taxable",match_attributes:{part_family:c.family,source_text:desc},source:"so_auto",external_refs:{}};}
 
 /* ---------------- LOGIN ---------------- */
 function renderLogin(){
@@ -263,17 +265,23 @@ function openOrder(o){
 let MS=null;
 function groundedRow(m,qty,state){const need=needFor(m.subcategory)*qty;const onHand=INV[m.material_code]||0;return {material:m,status:"match",score:1,src:"grounded",need,onHand,shortfall:Math.max(0,need-onHand),state,qty};}
 function aiRow(item,qty,state){
-  const desc=(item.description||item.desc||"").toString().trim();
+  const name=(item.name||item.short_description||item.short||"").toString().trim() || (item.description||"").toString().split(",")[0].trim();
+  const long=(item.description||item.long_description||item.long||name).toString().trim();
   const sub=(item.subcategory||item.sub||"").toString().toUpperCase();
-  const r=resolve(desc);
+  const r=resolve(name);                       // match on the CRISP name, not the sentence
   let material,status;
-  if(r.status!=="new"&&r.bestScore>=0.42){material=r.best;status="match";}
-  else{material=makeProvisional(desc,sub);status="new";}
+  const HIGH=0.42,MED=0.26;
+  if(r.bestScore>=HIGH){material=r.best;status="match";}         // reuse existing code (dedupe)
+  else if(r.bestScore>=MED){material=r.best;status="review";}    // possible duplicate -> confirm
+  else{material=makeProvisional(name,sub,long);status="new";}    // genuinely new
   const need=needFor(material.subcategory)*qty;const onHand=INV[material.material_code]||0;
-  return {material,status,score:r.bestScore,src:"ai",need,onHand,shortfall:Math.max(0,need-onHand),state,qty,aiDesc:desc};
+  return {material,status,score:r.bestScore,src:"ai",need,onHand,shortfall:Math.max(0,need-onHand),state,qty,aiName:name};
 }
 async function aiExplode(machineName){
-  const prompt=`You are a manufacturing BOM assistant for heavy earthmoving / industrial machines. List the main raw materials required to manufacture one "${machineName}". Respond with ONLY a JSON array (no markdown, no prose) of 5 to 7 objects, each: {"description":"<short material description, e.g. Structural steel plate 25mm A572>","subcategory":"<one of STL,BAR,CST,TUB,NFE,RUB>"}.`;
+  const prompt=`You are a manufacturing BOM assistant for heavy machines. For one "${machineName}", list the main RAW MATERIALS needed to build it. Respond with ONLY a JSON array (no markdown) of 5-7 objects, each with:
+"name": a CRISP material name, 3-6 words, like a catalogue entry (e.g. "Structural Plate 25mm A572"),
+"description": one full sentence with grade/spec and use,
+"subcategory": one of STL,BAR,CST,TUB,NFE,RUB.`;
   const body=JSON.stringify({contents:[{parts:[{text:prompt}]}]});
   const models=[GEMINI_MODEL,"gemini-flash-latest","gemini-2.5-flash","gemini-2.0-flash","gemini-1.5-flash"].filter((m,i,a)=>m&&a.indexOf(m)===i);
   let lastErr="";
@@ -316,7 +324,9 @@ async function addAI(i){
   try{
     const items=await aiExplode(mc.machine||mc.raw);
     const have=new Set(mc.rows.map(r=>r.material.material_code));
-    items.forEach(it=>{const row=aiRow(it,mc.qty,mc.state);if(!have.has(row.material.material_code)){mc.rows.push(row);have.add(row.material.material_code);}});
+    const deduped=[];
+    items.forEach(it=>{const row=aiRow(it,mc.qty,mc.state);if(have.has(row.material.material_code)){deduped.push({name:row.aiName,code:row.material.material_code,score:row.score});}else{mc.rows.push(row);have.add(row.material.material_code);}});
+    mc.aiDeduped=deduped;
     mc.aiDone=true;machineRebuild();toast("AI added "+items.length+" suggestion(s)");
   }catch(e){toast("AI failed: "+String(e.message).slice(0,70),true);console.error(e);}
 }
@@ -338,8 +348,16 @@ function renderMachineWorkspace(){
       box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:600">${title}</div>${aiBtn}</div><div class="empty" style="padding:10px">${b.machine?"No tagged materials.":(GEMINI_KEY?"Identifying materials with AI…":"Not in catalogue — add a Gemini key to explode unknown machines.")}</div>`;
     }else{
       box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:600">${title}</div>${aiBtn}</div>
-        <table style="width:100%;border-collapse:collapse;font-size:12.5px"><tr style="color:var(--muted);font-size:11px"><th style="text-align:left;padding:6px 0">Material</th><th style="text-align:left">Code</th><th style="text-align:left">Src</th><th style="text-align:right">Need</th><th style="text-align:right">Stock</th><th style="text-align:right">Buy</th><th style="text-align:left;padding-left:10px">Action</th></tr>
-        ${b.rows.map(r=>`<tr style="border-top:1px solid var(--line-2)"><td style="padding:8px 0">${r.material.short_description}</td><td class="mono">${r.material.material_code}</td><td>${r.src==="ai"?'<span class="badge new" style="font-size:10px">AI</span>':'<span style="color:var(--muted);font-size:11px">data</span>'}</td><td style="text-align:right" class="mono">${r.need} ${r.material.base_uom||""}</td><td style="text-align:right" class="mono">${r.onHand}</td><td style="text-align:right" class="mono">${r.shortfall||"—"}</td><td style="padding-left:10px">${r.shortfall>0?(r.status==="new"?'<span class="badge new">new + PR</span>':'<span class="badge new">raise PR</span>'):'<span class="badge active">in stock</span>'}</td></tr>`).join("")}</table>`;
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px"><tr style="color:var(--muted);font-size:11px"><th style="text-align:left;padding:6px 0">Material</th><th style="text-align:left">Code</th><th style="text-align:left">Src</th><th style="text-align:left">Match</th><th style="text-align:right">Need</th><th style="text-align:right">Stock</th><th style="text-align:right">Buy</th><th style="text-align:left;padding-left:10px">Action</th></tr>
+        ${b.rows.map(r=>{
+          const pct=Math.round((r.score||1)*100);
+          const matchCell = r.src==="grounded" ? '<span style="color:var(--muted);font-size:11px">tagged</span>'
+            : r.status==="new" ? `<span class="badge new" style="font-size:10px">new · ${pct}%</span>`
+            : r.status==="review" ? `<span class="badge review" style="font-size:10px">check · ${pct}%</span>`
+            : `<span class="badge match" style="font-size:10px">reused · ${pct}%</span>`;
+          return `<tr style="border-top:1px solid var(--line-2)"><td style="padding:8px 0">${r.material.short_description}</td><td class="mono">${r.material.material_code}</td><td>${r.src==="ai"?'<span class="badge new" style="font-size:10px">AI</span>':'<span style="color:var(--muted);font-size:11px">data</span>'}</td><td>${matchCell}</td><td style="text-align:right" class="mono">${r.need} ${r.material.base_uom||""}</td><td style="text-align:right" class="mono">${r.onHand}</td><td style="text-align:right" class="mono">${r.shortfall||"—"}</td><td style="padding-left:10px">${r.shortfall>0?(r.status==="new"?'<span class="badge new">new + PR</span>':'<span class="badge new">raise PR</span>'):'<span class="badge active">in stock</span>'}</td></tr>`;
+        }).join("")}</table>
+        ${(b.aiDeduped&&b.aiDeduped.length)?`<div style="font-size:11.5px;color:var(--muted);margin-top:8px">✨ AI also suggested ${b.aiDeduped.length} material(s) you already have — matched and skipped (no duplicate): ${b.aiDeduped.map(d=>`${d.name} <span class="mono">→ ${d.code}</span> (${Math.round(d.score*100)}%)`).join("; ")}</div>`:""}`;
     }
     bd.appendChild(box);
   });
@@ -462,7 +480,7 @@ function openMaterial(l){
     root.querySelector("#f_cat").onchange=recode;root.querySelector("#f_sub").oninput=recode;
     root.querySelector("#ap").onclick=async(ev)=>{
       const b=ev.target;b.disabled=true;b.textContent="Saving…";
-      m.short_description=root.querySelector("#f_desc").value.trim()||m.short_description;m.long_description=m.short_description;
+      m.short_description=root.querySelector("#f_desc").value.trim()||m.short_description;m.long_description=m.long_description&&m.long_description!==m.short_description?m.long_description:m.short_description;
       m.category=root.querySelector("#f_cat").value;m.subcategory=(root.querySelector("#f_sub").value||"MSC").toUpperCase();
       m.base_uom=root.querySelector("#f_uom").value;m.hsn_code=root.querySelector("#f_hsn").value.trim();m.gst_rate=+root.querySelector("#f_gst").value||18;
       m.material_code=root.querySelector("#f_code").textContent;m.normalized_description=norm(m.short_description);
