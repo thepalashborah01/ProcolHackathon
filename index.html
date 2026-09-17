@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Parts Desk</title>
+<title>Rosetta</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -141,7 +141,7 @@ function makeProvisional(desc,subOverride,longDesc){
 function renderLogin(){
   root.innerHTML="";
   app.innerHTML=`<div class="wrap"><div class="login">
-    <div class="logo">Parts Desk</div><div class="tl">Customer order → purchase requisition</div>
+    <div class="logo">Rosetta</div><div class="tl">Customer order → purchase requisition</div>
     <div class="cards">
       <div class="lcard" id="asCust"><h3>I'm a Customer</h3><p>Place a parts order in your own words.</p></div>
       <div class="lcard" id="asAdmin"><h3>I'm the Admin</h3><p>Review orders, match parts, approve requisitions.</p></div>
@@ -161,7 +161,7 @@ function logout(){session=null;currentOrder=null;ST={resolved:[],prs:[]};renderL
 let ORDER_MODE="parts";
 function renderCustomer(){
   root.innerHTML="";
-  app.innerHTML=`<div class="wrap">${header("Parts Desk","place an order")}
+  app.innerHTML=`<div class="wrap">${header("Rosetta","place an order")}
     <div style="max-width:640px;margin:0 auto"><section class="panel">
       <div class="hd"><h2>New order</h2><span class="hint">what do you need?</span></div>
       <div class="bd">
@@ -222,7 +222,7 @@ async function sendOrder(){
 /* ---------------- ADMIN: order list ---------------- */
 async function renderAdmin(){
   root.innerHTML="";
-  app.innerHTML=`<div class="wrap">${header("Parts Desk — Admin","incoming customer orders")}
+  app.innerHTML=`<div class="wrap">${header("Rosetta — Admin","incoming customer orders")}
     <section class="panel"><div class="hd"><h2>Incoming orders</h2><button class="lnk" onclick="renderAdmin()">↻ Refresh</button></div>
     <div class="bd" id="orderList"><div class="empty">Loading orders…</div></div></section></div>`;
   try{
@@ -249,7 +249,7 @@ function openOrder(o){
   let tmp=prBase;
   const prs=states.map(st=>({prNo:"PR-2026-"+String(++tmp).padStart(6,"0"),tentative:true,cust:o.customer_name,soRef,state:st,stName:(INDIAN_STATES.find(s=>s[0]===st)||[st,st])[1],lines:resolved.filter(r=>r.state===st),approved:false,pr_id:null}));
   ST={resolved,prs};
-  app.innerHTML=`<div class="wrap">${header("Parts Desk — Admin","order workspace")}
+  app.innerHTML=`<div class="wrap">${header("Rosetta — Admin","order workspace")}
     <button class="lnk" onclick="renderAdmin()">← Back to orders</button>
     <div class="panel" style="margin:10px 0 18px"><div class="bd" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
       <div><div style="font-weight:600"><span class="mono">${o.so_reference}</span> · ${o.customer_name}</div><div style="font-size:12.5px;color:var(--muted)">${resolved.length} line(s) · placed ${o.order_date||""}${o.required_by_date?" · required by "+o.required_by_date:""}</div></div>
@@ -332,7 +332,7 @@ async function addAI(i){
 }
 function renderMachineWorkspace(){
   const o=MS.o;
-  app.innerHTML=`<div class="wrap">${header("Parts Desk — Admin","machine order workspace")}
+  app.innerHTML=`<div class="wrap">${header("Rosetta — Admin","machine order workspace")}
     <button class="lnk" onclick="renderAdmin()">← Back to orders</button>
     <div class="panel" style="margin:10px 0 18px"><div class="bd" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
       <div><div style="font-weight:600"><span class="mono">${o.so_reference}</span> · ${o.customer_name} <span class="badge new">machine order</span></div><div style="font-size:12.5px;color:var(--muted)">${MS.machines.length} machine line(s) · placed ${o.order_date||""}</div></div>
