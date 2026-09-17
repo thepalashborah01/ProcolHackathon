@@ -99,7 +99,7 @@
 const SUPABASE_URL="https://niaykltphhpuehovoltz.supabase.co";
 const SUPABASE_KEY="sb_publishable_Md_KzdxxmhYnZFs9CHXEnw_cpnkfATw";
 // ---- Gemini AI (private demo only — key is visible in the page; keep repo private, rotate after) ----
-const GEMINI_KEY="AQ.Ab8RN6K0ULKghlVEJrcYKVP_g2GsGM1NI7tiwtQ5poVIbQLwgQ";                       // <-- paste your Gemini API key here
+const GEMINI_KEY="AQ.Ab8RN6IyjN1LIzmrxCREuyh3SuWdJ2Llj1HjzRS3R9pKpV0SXA";                       // <-- paste your Gemini API key here
 const GEMINI_MODEL="gemini-2.5-flash";     // change if this model name isn't available on your key
 const H={apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,"Content-Type":"application/json"};
 async function sbGet(q){const r=await fetch(`${SUPABASE_URL}/rest/v1/${q}`,{headers:H});if(!r.ok)throw new Error(await r.text());return r.json();}
