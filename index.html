@@ -98,9 +98,9 @@
 <script>
 const SUPABASE_URL="https://niaykltphhpuehovoltz.supabase.co";
 const SUPABASE_KEY="sb_publishable_Md_KzdxxmhYnZFs9CHXEnw_cpnkfATw";
-// ---- Gemini AI (private demo only — key is visible in the page; keep repo private, rotate after) ----
-const GEMINI_KEY="AQ.Ab8RN6JpsDkBwlixidmOrNxFvf-S8cSw9aE6y2JYMHgKAS_dHw";                       // <-- paste your Gemini API key here
-const GEMINI_MODEL="gemini-2.5-flash";     // change if this model name isn't available on your key
+// ---- AI runs through a Supabase Edge Function; the Gemini key lives server-side (never in this page) ----
+const AI_ENABLED=true;   // set false to hide the AI button entirely
+const GEMINI_KEY=AI_ENABLED;   // kept as a truthy flag so existing checks work
 const H={apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,"Content-Type":"application/json"};
 async function sbGet(q){const r=await fetch(`${SUPABASE_URL}/rest/v1/${q}`,{headers:H});if(!r.ok)throw new Error(await r.text());return r.json();}
 async function sbPost(t,b,ret){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}`,{method:"POST",headers:{...H,...(ret?{Prefer:"return=representation"}:{})},body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());return ret?r.json():null;}
@@ -278,24 +278,11 @@ function aiRow(item,qty,state){
   return {material,status,score:r.bestScore,src:"ai",need,onHand,shortfall:Math.max(0,need-onHand),state,qty,aiName:name};
 }
 async function aiExplode(machineName){
-  const prompt=`You are a manufacturing BOM assistant for heavy machines. For one "${machineName}", list the main RAW MATERIALS needed to build it. Respond with ONLY a JSON array (no markdown) of 5-7 objects, each with:
-"name": a CRISP material name, 3-6 words, like a catalogue entry (e.g. "Structural Plate 25mm A572"),
-"description": one full sentence with grade/spec and use,
-"subcategory": one of STL,BAR,CST,TUB,NFE,RUB.`;
-  const body=JSON.stringify({contents:[{parts:[{text:prompt}]}]});
-  const models=[GEMINI_MODEL,"gemini-flash-latest","gemini-2.5-flash","gemini-2.0-flash","gemini-1.5-flash"].filter((m,i,a)=>m&&a.indexOf(m)===i);
-  let lastErr="";
-  for(const model of models){
-    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":GEMINI_KEY},body});
-    if(r.ok){
-      const d=await r.json();
-      let t=((d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0].text)||"").replace(/```json/gi,"").replace(/```/g,"").trim();
-      const arr=JSON.parse(t);return Array.isArray(arr)?arr:[];
-    }
-    lastErr=(await r.text()).slice(0,120);
-    if(r.status!==404&&r.status!==400)break;   // 401/403/429 -> key/quota problem, don't keep trying models
-  }
-  throw new Error(lastErr||"request failed");
+  const r=await fetch(`${SUPABASE_URL}/functions/v1/gemini-bom`,{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`},body:JSON.stringify({machine:machineName})});
+  if(!r.ok)throw new Error((await r.text()).slice(0,140));
+  const d=await r.json();
+  if(d.error)throw new Error(d.error);
+  return Array.isArray(d.materials)?d.materials:[];
 }
 function openMachineOrder(o){
   currentOrder=o;
@@ -319,7 +306,7 @@ function machineRebuild(){
 }
 async function addAI(i){
   const mc=MS.machines[i];if(mc.aiDone)return;
-  if(!GEMINI_KEY){toast("Add your Gemini key in the page to use AI",true);return;}
+  if(!GEMINI_KEY){toast("AI is turned off",true);return;}
   toast("Asking AI for materials…");
   try{
     const items=await aiExplode(mc.machine||mc.raw);
@@ -345,7 +332,7 @@ function renderMachineWorkspace(){
     const title=b.machine?`${b.raw} → <span style="color:var(--steel)">${b.machine}</span> ×${b.qty}`:`${b.raw} <span class="badge review">not in catalogue</span>`;
     const aiBtn=(GEMINI_KEY&&!b.aiDone)?`<button class="lnk" data-ai="${i}">✨ AI: suggest ${b.machine?"more ":""}materials</button>`:"";
     if(!b.rows.length){
-      box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:600">${title}</div>${aiBtn}</div><div class="empty" style="padding:10px">${b.machine?"No tagged materials.":(GEMINI_KEY?"Identifying materials with AI…":"Not in catalogue — add a Gemini key to explode unknown machines.")}</div>`;
+      box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:600">${title}</div>${aiBtn}</div><div class="empty" style="padding:10px">${b.machine?"No tagged materials.":(GEMINI_KEY?"Identifying materials with AI…":"Not in catalogue — AI is turned off.")}</div>`;
     }else{
       box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-weight:600">${title}</div>${aiBtn}</div>
         <table style="width:100%;border-collapse:collapse;font-size:12.5px"><tr style="color:var(--muted);font-size:11px"><th style="text-align:left;padding:6px 0">Material</th><th style="text-align:left">Code</th><th style="text-align:left">Src</th><th style="text-align:left">Match</th><th style="text-align:right">Need</th><th style="text-align:right">Stock</th><th style="text-align:right">Buy</th><th style="text-align:left;padding-left:10px">Action</th></tr>
